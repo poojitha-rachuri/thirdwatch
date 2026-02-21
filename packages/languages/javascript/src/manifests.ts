@@ -36,11 +36,13 @@ function parsePackageJson(
 
   for (const field of ["dependencies", "devDependencies", "peerDependencies"]) {
     const deps = pkg[field];
-    if (deps && typeof deps === "object") {
+    if (deps && typeof deps === "object" && !Array.isArray(deps)) {
       for (const [name, version] of Object.entries(
-        deps as Record<string, string>,
+        deps as Record<string, unknown>,
       )) {
-        allDeps[name] = version;
+        if (typeof version === "string") {
+          allDeps[name] = version;
+        }
       }
     }
   }

@@ -2,7 +2,8 @@ import { relative } from "node:path";
 import type { AnalyzerContext, DependencyEntry } from "@thirdwatch/core";
 import type { Confidence } from "@thirdwatch/tdm";
 
-const HTTP_METHODS = new Set(["get", "post", "put", "patch", "delete", "head", "options", "request"]);
+const HTTP_METHODS = new Set(["get", "post", "put", "patch", "delete", "head", "options"]);
+const HTTP_CLIENTS = new Set(["requests", "httpx", "http_client", "session", "client", "http"]);
 
 // Known SDK modules → provider mapping
 const SDK_PROVIDERS: Record<string, string> = {
@@ -54,30 +55,32 @@ export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
   const lines = context.source.split("\n");
   const rel = relative(context.scanRoot, context.filePath);
 
+  const sdkDetectedOnLine = new Set<string>();
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const lineNum = i + 1;
+    sdkDetectedOnLine.clear();
 
     // Detect HTTP calls: requests.get("url"), httpx.post("url"), etc.
     // Excludes os.environ.get() and similar non-HTTP calls
     const httpCallMatch = line.match(
-      /(\w+)\.(get|post|put|patch|delete|head|options|request)\(\s*(?:["']([^"']+)["']|(\w+))?/i,
+      /(\w+)\.(get|post|put|patch|delete|head|options)\(\s*(?:["']([^"']+)["']|(\w+))?/i,
     );
     if (httpCallMatch) {
       const [, clientVar, method, literalUrl, varUrl] = httpCallMatch;
-      const skipClients = new Set(["os", "environ", "dict", "list", "self", "cls", "response"]);
       if (
         clientVar &&
         method &&
         HTTP_METHODS.has(method.toLowerCase()) &&
-        !skipClients.has(clientVar)
+        HTTP_CLIENTS.has(clientVar)
       ) {
         // If no URL argument on this line, peek at the next line
         let url = literalUrl ?? varUrl;
         let confidence: Confidence = "medium";
         if (!url && i + 1 < lines.length) {
           const nextLine = lines[i + 1]!.trim();
-          const nextLiteralMatch = nextLine.match(/^["']([^"']+)["']/);
+          const nextLiteralMatch = nextLine.match(/^[fFrRbBuU]*["']([^"']+)["']/);
           const nextVarMatch = nextLine.match(/^(\w+)\s*,/);
           url = nextLiteralMatch?.[1] ?? nextVarMatch?.[1];
         }
@@ -100,36 +103,44 @@ export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
     for (const [module, provider] of Object.entries(SDK_PROVIDERS)) {
       // Match: boto3.client("s3"), boto3.resource("dynamodb")
       if (module === "boto3") {
-        const boto3Match = line.match(/boto3\.(client|resource)\(\s*["']([^"']+)["']/);
+        const boto3Match = line.match(/(?:^|[^\w])boto3\.(client|resource)\(\s*["']([^"']+)["']/);
         if (boto3Match) {
-          entries.push({
-            kind: "sdk",
-            provider,
-            sdk_package: module,
-            services_used: [boto3Match[2]!],
-            api_methods: [`boto3.${boto3Match[1]}("${boto3Match[2]}")`],
-            locations: [{ file: rel, line: lineNum, context: line.trim() }],
-            usage_count: 1,
-            confidence: "high",
-          });
+          const sdkKey = `${provider}:${lineNum}`;
+          if (!sdkDetectedOnLine.has(sdkKey)) {
+            sdkDetectedOnLine.add(sdkKey);
+            entries.push({
+              kind: "sdk",
+              provider,
+              sdk_package: module,
+              services_used: [boto3Match[2]!],
+              api_methods: [`boto3.${boto3Match[1]}("${boto3Match[2]}")`],
+              locations: [{ file: rel, line: lineNum, context: line.trim() }],
+              usage_count: 1,
+              confidence: "high",
+            });
+          }
         }
         continue;
       }
 
       // Match: stripe.Charge.create(...), openai.ChatCompletion.create(...)
       const modulePattern = module.replace(/_/g, "[_.]");
-      const sdkCallMatch = line.match(new RegExp(`${modulePattern}\\.(\\w+(?:\\.\\w+)*)\\(`));
+      const sdkCallMatch = line.match(new RegExp(`(?:^|[^\\w])${modulePattern}\\.(\\w+(?:\\.\\w+)*)\\(`));
       if (sdkCallMatch) {
-        const apiMethod = `${module}.${sdkCallMatch[1]}`;
-        entries.push({
-          kind: "sdk",
-          provider,
-          sdk_package: module,
-          api_methods: [apiMethod],
-          locations: [{ file: rel, line: lineNum, context: line.trim() }],
-          usage_count: 1,
-          confidence: "high",
-        });
+        const sdkKey = `${provider}:${lineNum}`;
+        if (!sdkDetectedOnLine.has(sdkKey)) {
+          sdkDetectedOnLine.add(sdkKey);
+          const apiMethod = `${module}.${sdkCallMatch[1]}`;
+          entries.push({
+            kind: "sdk",
+            provider,
+            sdk_package: module,
+            api_methods: [apiMethod],
+            locations: [{ file: rel, line: lineNum, context: line.trim() }],
+            usage_count: 1,
+            confidence: "high",
+          });
+        }
       }
     }
 
@@ -139,20 +150,28 @@ export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
       const ctorName = constructorMatch[1]!;
       const ctorMapping = SDK_CONSTRUCTORS[ctorName];
       if (ctorMapping) {
-        entries.push({
-          kind: "sdk",
-          provider: ctorMapping[0],
-          sdk_package: ctorMapping[1],
-          locations: [{ file: rel, line: lineNum, context: line.trim(), usage: `constructor:${ctorName}` }],
-          usage_count: 1,
-          confidence: "high",
-        });
+        const sdkKey = `${ctorMapping[0]}:${lineNum}`;
+        if (!sdkDetectedOnLine.has(sdkKey)) {
+          sdkDetectedOnLine.add(sdkKey);
+          entries.push({
+            kind: "sdk",
+            provider: ctorMapping[0],
+            sdk_package: ctorMapping[1],
+            locations: [{ file: rel, line: lineNum, context: line.trim(), usage: `constructor:${ctorName}` }],
+            usage_count: 1,
+            confidence: "high",
+          });
+        }
       }
     }
 
     // Detect infrastructure: psycopg2.connect(...), redis.Redis(...), etc.
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith("#")) continue;
     for (const [func, infraType] of Object.entries(INFRA_FUNCS)) {
-      if (line.includes(func)) {
+      const escapedFunc = func.replace(/\./g, "\\.");
+      const infraRegex = new RegExp(`\\b${escapedFunc}\\b`);
+      if (infraRegex.test(line)) {
         const envMatch = line.match(/os\.environ\[["']([^"']+)["']\]|os\.environ\.get\(["']([^"']+)["']\)/);
         const connRefMatch = line.match(/["']([^"']+)["']/);
         const connection_ref = envMatch?.[1] ?? envMatch?.[2] ?? connRefMatch?.[1] ?? "unknown";

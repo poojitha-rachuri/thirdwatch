@@ -1,7 +1,6 @@
 import { relative } from "node:path";
 import type { AnalyzerContext, DependencyEntry } from "@thirdwatch/core";
-
-type Confidence = "high" | "medium" | "low";
+import type { Confidence } from "@thirdwatch/tdm";
 
 // SDK constructors: new Stripe(key), new OpenAI({...}), new S3Client({...}), etc.
 const SDK_CONSTRUCTORS: Record<string, [string, string]> = {
@@ -40,22 +39,51 @@ const HTTP_METHODS = new Set([
 // Infrastructure constructors
 const INFRA_CONSTRUCTORS: Record<string, string> = {
   PgClient: "postgresql",
-  Client: "postgresql", // pg Client
   Pool: "postgresql",
   MongoClient: "mongodb",
 };
+
+const VALID_HTTP_METHODS = new Set([
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "HEAD",
+  "OPTIONS",
+]);
 
 export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
   const entries: DependencyEntry[] = [];
   const lines = context.source.split("\n");
   const rel = relative(context.scanRoot, context.filePath);
 
+  // Track pg import aliases: import { Client as PgClient } from "pg"
+  const pgClientNames = new Set<string>();
+  for (const line of lines) {
+    const pgImport = line.match(
+      /import\s*\{([^}]+)\}\s*from\s*["']pg["']/,
+    );
+    if (pgImport) {
+      const specifiers = pgImport[1]!.split(",");
+      for (const spec of specifiers) {
+        const aliased = spec.trim().match(/^(\w+)\s+as\s+(\w+)$/);
+        if (aliased) {
+          pgClientNames.add(aliased[2]!);
+        } else {
+          const name = spec.trim();
+          if (name) pgClientNames.add(name);
+        }
+      }
+    }
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const lineNum = i + 1;
 
     // Detect fetch() calls
-    const fetchMatch = line.match(/fetch\(\s*(?:["'`]([^"'`]+)["'`]|(\w+))/);
+    const fetchMatch = line.match(/fetch\(\s*(?:["'`]([^"'`]+)["'`]|(\w+)!?)/);
     if (fetchMatch) {
       const url = fetchMatch[1] ?? fetchMatch[2] ?? "unknown";
       const isLiteral = fetchMatch[1] !== undefined;
@@ -76,7 +104,10 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
         .join(" ");
       const methodMatch = context5.match(/method:\s*["'](\w+)["']/);
       if (methodMatch) {
-        method = methodMatch[1]!.toUpperCase() as typeof method;
+        const parsed = methodMatch[1]!.toUpperCase();
+        if (VALID_HTTP_METHODS.has(parsed)) {
+          method = parsed as typeof method;
+        }
       }
 
       entries.push({
@@ -91,15 +122,18 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
 
     // Detect axios.get/post/... calls with string or variable URLs
     const axiosMatch = line.match(
-      /(\w+)\.(get|post|put|patch|delete|head|request)\(\s*(?:["']([^"']+)["']|(\w+))/,
+      /(\w+)\.(get|post|put|patch|delete|head|request)\(\s*(?:["']([^"']+)["']|(\w+)!?)/,
     );
     if (axiosMatch) {
       const [, clientVar, method, literalUrl, varUrl] = axiosMatch;
+      const httpMethod = method?.toUpperCase();
       if (
         clientVar &&
         HTTP_CLIENTS.has(clientVar) &&
         method &&
-        HTTP_METHODS.has(method)
+        HTTP_METHODS.has(method) &&
+        httpMethod &&
+        VALID_HTTP_METHODS.has(httpMethod)
       ) {
         const url = literalUrl ?? varUrl ?? "unknown";
         const isLiteral = literalUrl !== undefined;
@@ -109,7 +143,7 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
         entries.push({
           kind: "api",
           url,
-          method: method.toUpperCase() as
+          method: httpMethod as
             | "GET"
             | "POST"
             | "PUT"
@@ -130,11 +164,14 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
       );
       if (templateMatch) {
         const [, clientVar, method] = templateMatch;
+        const httpMethod = method?.toUpperCase();
         if (
           clientVar &&
           HTTP_CLIENTS.has(clientVar) &&
           method &&
-          HTTP_METHODS.has(method)
+          HTTP_METHODS.has(method) &&
+          httpMethod &&
+          VALID_HTTP_METHODS.has(httpMethod)
         ) {
           const templateContent = line.match(/`([^`]*)`/);
           const url = templateContent?.[1] ?? "unknown";
@@ -142,7 +179,7 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
           entries.push({
             kind: "api",
             url,
-            method: method.toUpperCase() as
+            method: httpMethod as
               | "GET"
               | "POST"
               | "PUT"
@@ -181,7 +218,9 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
       }
 
       // Infrastructure constructors: new PgClient({connectionString:...})
-      const infraType = INFRA_CONSTRUCTORS[ctorName];
+      const infraType =
+        INFRA_CONSTRUCTORS[ctorName] ??
+        (pgClientNames.has(ctorName) ? "postgresql" : undefined);
       if (infraType) {
         const connMatch = line.match(
           /connectionString:\s*(?:process\.env\[["']([^"']+)["']\]|["']([^"']+)["'])/,

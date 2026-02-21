@@ -24,7 +24,11 @@ function parseRequirementsTxt(content: string, manifestFile: string): Dependency
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#") && !line.startsWith("-"))
     .map((line) => {
-      const match = line.match(/^([A-Za-z0-9_\-.]+)\s*([>=<!~^].+)?/);
+      // Strip environment markers: "package; python_version < '3.10'" → "package"
+      // Strip extras: "package[extra1,extra2]>=1.0" → "package>=1.0"
+      let cleaned = line.replace(/;.*$/, "").trim();
+      cleaned = cleaned.replace(/\[.*?\]/, "");
+      const match = cleaned.match(/^([A-Za-z0-9_\-.]+)\s*([>=<!~^].+)?/);
       if (!match) return null;
       const name = match[1]!.toLowerCase().replace(/_/g, "-");
       const constraint = match[2]?.trim();

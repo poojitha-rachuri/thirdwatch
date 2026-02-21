@@ -21,6 +21,15 @@ export interface SDKRegistryEntry {
   env_var_patterns?: string[];
 }
 
+function isValidRegistryEntry(value: unknown): value is SDKRegistryEntry {
+  if (value == null || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.provider !== "string") return false;
+  if (typeof obj.display_name !== "string") return false;
+  if (obj.patterns == null || typeof obj.patterns !== "object") return false;
+  return true;
+}
+
 export async function loadSDKRegistry(
   registriesDir: string,
 ): Promise<SDKRegistryEntry[]> {
@@ -28,13 +37,14 @@ export async function loadSDKRegistry(
     cwd: registriesDir,
     absolute: true,
   });
-  const entries = await Promise.all(
-    files.map(
-      async (f) =>
-        yaml.load(await readFile(f, "utf8")) as SDKRegistryEntry,
-    ),
+  const results = await Promise.all(
+    files.map(async (f) => {
+      const raw = yaml.load(await readFile(f, "utf8"));
+      if (!isValidRegistryEntry(raw)) return null;
+      return raw;
+    }),
   );
-  return entries;
+  return results.filter((e): e is SDKRegistryEntry => e !== null);
 }
 
 /**
@@ -47,7 +57,7 @@ export function buildPackageProviderMap(
   const map = new Map<string, string>();
   for (const entry of registry) {
     const patterns = entry.patterns[ecosystem];
-    if (!patterns) continue;
+    if (!Array.isArray(patterns)) continue;
     for (const p of patterns) {
       map.set(p.package, entry.provider);
     }
@@ -63,7 +73,7 @@ export function buildUrlProviderMap(
 ): Map<string, string> {
   const map = new Map<string, string>();
   for (const entry of registry) {
-    if (!entry.known_api_base_urls) continue;
+    if (!Array.isArray(entry.known_api_base_urls)) continue;
     for (const url of entry.known_api_base_urls) {
       map.set(url, entry.provider);
     }
