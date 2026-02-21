@@ -74,13 +74,30 @@ export function buildEnvMap(
 
 const ENV_VAR_PATTERN = /\$\{([^}]+)\}/g;
 
+/** Patterns that indicate secrets — redacted from resolved URLs to prevent exposure in TDM output */
+const SECRET_PATTERNS = [
+  /\bsk_[a-zA-Z0-9]{24,}/g, // Stripe secret key
+  /\bghp_[a-zA-Z0-9]{36}/g, // GitHub personal access token
+  /\bgho_[a-zA-Z0-9]{36}/g, // GitHub OAuth
+  /\bBearer\s+[a-zA-Z0-9_\-\.]+/gi, // Bearer tokens
+  /(?:api[_-]?key|key)=[^&\s]+/gi, // api_key=, key= values
+];
+
+function redactSecretsInUrl(url: string): string {
+  let result = url;
+  for (const pattern of SECRET_PATTERNS) {
+    result = result.replace(pattern, "[REDACTED]");
+  }
+  return result;
+}
+
 export function resolveUrl(
   urlTemplate: string,
   env: Record<string, string>,
 ): { resolved: string | null; confidence: Confidence } {
-  // If no env vars in template, it's already resolved
+  // If no env vars in template, it's already resolved (still redact secrets)
   if (!urlTemplate.includes("${")) {
-    return { resolved: urlTemplate, confidence: "high" };
+    return { resolved: redactSecretsInUrl(urlTemplate), confidence: "high" };
   }
 
   let allResolved = true;
@@ -97,10 +114,10 @@ export function resolveUrl(
   });
 
   if (allResolved) {
-    return { resolved, confidence: "high" };
+    return { resolved: redactSecretsInUrl(resolved), confidence: "high" };
   }
   if (anyResolved) {
-    return { resolved, confidence: "medium" };
+    return { resolved: redactSecretsInUrl(resolved), confidence: "medium" };
   }
   return { resolved: null, confidence: "low" };
 }

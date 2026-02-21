@@ -19,9 +19,9 @@ describe("resolveUrl", () => {
     expect(result.confidence).toBe("high");
   });
 
-  it("resolves multiple env vars", () => {
+  it("resolves multiple env vars and redacts secrets in output", () => {
     const result = resolveUrl("${STRIPE_API_BASE}/v1?key=${API_KEY}", env);
-    expect(result.resolved).toBe("https://api.stripe.com/v1?key=sk_test_123");
+    expect(result.resolved).toBe("https://api.stripe.com/v1?[REDACTED]");
     expect(result.confidence).toBe("high");
   });
 

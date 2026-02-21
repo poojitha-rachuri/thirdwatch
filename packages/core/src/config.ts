@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { resolve, join } from "node:path";
+import { resolve, join, sep } from "node:path";
 import * as yaml from "js-yaml";
 // ignore@5 is CJS (`module.exports = factory`) with a `export default` d.ts.
 // Under NodeNext, tsc sees the namespace rather than the callable; vitest/vite
@@ -62,6 +62,18 @@ export async function loadConfig(
     ? resolve(configPath)
     : join(scanRoot, ".thirdwatch.yml");
 
+  // Prevent path traversal: config must be within scan root
+  const scanRootResolved = resolve(scanRoot);
+  const filePathResolved = resolve(filePath);
+  if (
+    !filePathResolved.startsWith(scanRootResolved + sep) &&
+    filePathResolved !== scanRootResolved
+  ) {
+    throw new Error(
+      `Config path must be within scan root: ${filePath} is outside ${scanRoot}`,
+    );
+  }
+
   let raw: string;
   try {
     raw = await readFile(filePath, "utf-8");
@@ -70,13 +82,19 @@ export async function loadConfig(
     return { ...DEFAULT_CONFIG };
   }
 
-  const parsed = yaml.load(raw);
+  const parsed = yaml.load(raw, { schema: yaml.FAILSAFE_SCHEMA });
   if (parsed == null || typeof parsed !== "object") {
     return { ...DEFAULT_CONFIG };
   }
 
-  const result = ConfigSchema.parse(parsed);
-  return { ...DEFAULT_CONFIG, ...result };
+  try {
+    const result = ConfigSchema.parse(parsed);
+    return { ...DEFAULT_CONFIG, ...result };
+  } catch (err) {
+    throw new Error(
+      `Invalid .thirdwatch.yml: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +110,13 @@ export async function loadIgnore(scanRoot: string): Promise<Ignore> {
   const ignorePath = join(scanRoot, ".thirdwatchignore");
   try {
     const raw = await readFile(ignorePath, "utf-8");
-    ig.add(raw);
+    const patterns = raw
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (patterns.length > 0) {
+      ig.add(patterns);
+    }
   } catch {
     // No .thirdwatchignore — that's fine
   }

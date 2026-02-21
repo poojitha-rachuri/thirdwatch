@@ -16,6 +16,3 @@ export { loadConfig, loadIgnore } from "./config.js";
 export type { ThirdwatchConfig } from "./config.js";
 
 export { resolveUrl, loadEnvFile, buildEnvMap } from "./resolve.js";
-
-export { getChangedFiles } from "./incremental.js";
-export type { ChangedFilesResult } from "./incremental.js";

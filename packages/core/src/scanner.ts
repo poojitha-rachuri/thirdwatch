@@ -1,5 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
-import { extname, relative } from "node:path";
+import { availableParallelism } from "node:os";
+import { basename, extname, relative } from "node:path";
 import { glob } from "fast-glob";
 import type { TDM } from "@thirdwatch/tdm";
 import type { LanguageAnalyzerPlugin, DependencyEntry } from "./plugin.js";
@@ -20,13 +21,11 @@ export interface ScanOptions {
   ignore?: string[];
   /** Path to .thirdwatch.yml (default: <root>/.thirdwatch.yml) */
   configFile?: string;
-  /** Previous TDM for incremental scanning */
-  previousTdm?: TDM;
   /** Whether to resolve env vars in URLs (default: true) */
   resolveEnv?: boolean;
   /** Use process.env for URL resolution (default: false) */
   useProcessEnv?: boolean;
-  /** Max concurrent file analyses (default: 8) */
+  /** Max concurrent file analyses (default: os.availableParallelism() or 16) */
   concurrency?: number;
 }
 
@@ -98,7 +97,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
     root,
     plugins,
     ignore: extraIgnore = [],
-    concurrency = 8,
+    concurrency = Math.min(16, Math.max(8, availableParallelism?.() ?? 16)),
     resolveEnv = true,
     useProcessEnv = false,
   } = options;
@@ -146,65 +145,65 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
     return !ig.ignores(rel);
   });
 
-  // Separate manifest files from source files
+  // Separate manifest files from source files (match by basename to avoid false positives)
   const manifestFiles = filteredFiles.filter((f) =>
-    MANIFEST_PATTERNS.some((p) => f.endsWith(p)),
+    MANIFEST_PATTERNS.includes(basename(f)),
   );
 
   // Source files: only files with extensions matching a registered plugin
   const sourceFiles = filteredFiles.filter((f) => pluginMap.has(extname(f)));
 
-  // Collect entries from manifests
-  const manifestEntries: DependencyEntry[] = [];
-  for (const plugin of plugins) {
-    if (plugin.analyzeManifests) {
-      const entries = await plugin.analyzeManifests(manifestFiles, root);
-      manifestEntries.push(...entries);
-    }
-  }
+  // Collect entries from manifests (parallel across plugins)
+  const manifestResults = await Promise.all(
+    plugins
+      .filter((p): p is LanguageAnalyzerPlugin & { analyzeManifests: NonNullable<LanguageAnalyzerPlugin["analyzeManifests"]> } =>
+        p.analyzeManifests != null,
+      )
+      .map((p) => p.analyzeManifests!(manifestFiles, root)),
+  );
+  const manifestEntries = manifestResults.flat();
 
   // Analyze source files with concurrency control
   const errors: ScanError[] = [];
-  let filesSkipped = 0;
 
-  const tasks = sourceFiles.map((filePath) => async (): Promise<DependencyEntry[]> => {
+  type TaskResult = { entries: DependencyEntry[]; skipped: boolean };
+  const tasks = sourceFiles.map((filePath) => async (): Promise<TaskResult> => {
     // Skip files that are too large
     try {
       const fileStat = await stat(filePath);
       if (fileStat.size > maxFileSizeBytes) {
-        filesSkipped++;
-        return [];
+        return { entries: [], skipped: true };
       }
     } catch {
-      filesSkipped++;
-      return [];
+      return { entries: [], skipped: true };
     }
 
     const plugin = pluginMap.get(extname(filePath));
-    if (!plugin) return [];
+    if (!plugin) return { entries: [], skipped: false };
 
     try {
       const source = await readFile(filePath, "utf-8");
-      return await plugin.analyze({
+      const entries = await plugin.analyze({
         filePath,
         source,
         scanRoot: root,
         resolvedEnv,
       });
+      return { entries, skipped: false };
     } catch (err) {
       errors.push({
         filePath,
         error: err instanceof Error ? err.message : String(err),
       });
-      return [];
+      return { entries: [], skipped: false };
     }
   });
 
   const fileResults = await pLimit(tasks, concurrency);
-
+  const filesSkipped = fileResults.filter((r) => r.skipped).length;
   const allEntries: DependencyEntry[] = [
     ...manifestEntries,
-    ...fileResults.flat(),
+    ...fileResults.flatMap((r) => r.entries),
   ];
 
   const duration = Date.now() - startMs;

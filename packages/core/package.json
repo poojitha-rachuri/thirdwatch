@@ -1,7 +1,7 @@
 {
   "name": "@thirdwatch/core",
   "version": "0.1.0",
-  "description": "Thirdwatch scanner engine — tree-sitter orchestration and plugin interface",
+  "description": "Thirdwatch scanner engine \u2014 tree-sitter orchestration and plugin interface",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,9 +28,6 @@
     "fast-glob": "^3.3.2",
     "ignore": "^5.3.0",
     "js-yaml": "^4.1.0",
-    "piscina": "^4.6.0",
-    "simple-git": "^3.27.0",
-    "web-tree-sitter": "^0.23.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
