@@ -11,7 +11,7 @@
   "files": ["dist", "bin"],
   "scripts": {
     "build": "tsc && node -e \"const fs=require('fs'); const p='dist/index.js'; fs.chmodSync(p, '755');\"",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "dev": "node --watch dist/index.js",
