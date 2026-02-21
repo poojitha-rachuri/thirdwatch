@@ -1,5 +1,16 @@
-// @thirdwatch/tdm — Plan 02 implements this
-// Placeholder until Plan 02 is executed
-
-export type { TDM } from "./types.js";
-export { parseTDM, parseTDMFromString, TDMValidationError } from "./validate.js";
+export { TDM_SCHEMA_VERSION } from "./types.js";
+export type {
+  TDM,
+  TDMMetadata,
+  TDMPackage,
+  TDMApi,
+  TDMSdk,
+  TDMInfrastructure,
+  TDMWebhook,
+  TDMLocation,
+  TDMValidationIssue,
+  Confidence,
+  ChangeCategory,
+  Priority,
+} from "./types.js";
+export { parseTDM, parseTDMFromString, TDMValidationError, TDM_SCHEMA_OBJECT } from "./validate.js";

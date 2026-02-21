@@ -1,151 +1,236 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://thirdwatch.dev/schema/v1/tdm.schema.json",
   "title": "Thirdwatch Dependency Manifest (TDM)",
-  "description": "A manifest of external dependencies detected in a codebase — APIs, SDKs, packages, and infrastructure connections.",
+  "description": "A structured manifest of all external dependencies discovered in a codebase — packages, HTTP APIs, SDKs, infrastructure connections, and webhooks.",
   "type": "object",
-  "required": ["schemaVersion", "generatedAt", "scanner", "project", "dependencies"],
+  "required": ["version", "metadata", "packages", "apis", "sdks", "infrastructure", "webhooks"],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": {
-      "const": "1.0",
-      "description": "TDM schema version. Always '1.0' for v1."
-    },
-    "generatedAt": {
+    "version": {
       "type": "string",
-      "format": "date-time",
-      "description": "ISO 8601 timestamp when this manifest was generated."
+      "pattern": "^\\d+\\.\\d+$",
+      "maxLength": 16,
+      "description": "TDM schema version in MAJOR.MINOR format, e.g. \"1.0\"."
     },
-    "scanner": {
-      "type": "object",
-      "required": ["name", "version"],
-      "additionalProperties": false,
-      "properties": {
-        "name": { "type": "string" },
-        "version": { "type": "string" }
-      }
-    },
-    "project": {
-      "type": "object",
-      "required": ["id", "name", "root"],
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Stable, unique project identifier (e.g., git remote URL or manual slug)."
-        },
-        "name": { "type": "string" },
-        "root": {
-          "type": "string",
-          "description": "Absolute path to scanned root directory."
-        },
-        "vcsRevision": {
-          "type": "string",
-          "description": "Git commit SHA or VCS revision at scan time."
-        }
-      }
-    },
-    "dependencies": {
+    "metadata": { "$ref": "#/$defs/TDMMetadata" },
+    "packages": {
       "type": "array",
-      "items": { "$ref": "#/$defs/Dependency" }
+      "items": { "$ref": "#/$defs/TDMPackage" },
+      "maxItems": 10000,
+      "description": "Third-party library declarations found in manifest files."
+    },
+    "apis": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TDMApi" },
+      "maxItems": 10000,
+      "description": "Outbound HTTP API calls detected in source code."
+    },
+    "sdks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TDMSdk" },
+      "maxItems": 10000,
+      "description": "Provider SDK usages detected in source code."
+    },
+    "infrastructure": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TDMInfrastructure" },
+      "maxItems": 10000,
+      "description": "Direct infrastructure connections (databases, queues, object storage)."
+    },
+    "webhooks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TDMWebhook" },
+      "maxItems": 10000,
+      "description": "Webhook registrations and inbound callback endpoints."
     }
   },
   "$defs": {
-    "Dependency": {
-      "type": "object",
-      "required": ["id", "type", "provider", "usages"],
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Stable identifier for this dependency entry. Used for diffing between scans."
-        },
-        "type": {
-          "type": "string",
-          "enum": ["sdk", "http_api", "package", "infrastructure", "webhook"],
-          "description": "The category of external dependency."
-        },
-        "provider": {
-          "type": "string",
-          "description": "Provider slug (e.g., 'stripe', 'aws', 'openai'). Matches registries/sdks/<slug>.yml."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "Human-readable provider name."
-        },
-        "packageName": {
-          "type": "string",
-          "description": "The specific package name (e.g., '@aws-sdk/client-s3', 'boto3')."
-        },
-        "packageVersion": {
-          "type": "string",
-          "description": "Installed version of the package, if resolvable."
-        },
-        "language": {
-          "type": "string",
-          "enum": ["python", "javascript", "typescript", "go", "ruby", "java", "csharp", "rust"],
-          "description": "Programming language where this dependency was detected."
-        },
-        "confidence": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Confidence score (0-1) of the detection."
-        },
-        "usages": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/Usage" }
-        },
-        "metadata": {
-          "type": "object",
-          "description": "Provider-specific metadata from the registry.",
-          "additionalProperties": true
-        }
-      }
+    "Confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Confidence level of the detection."
     },
-    "Usage": {
+    "TDMLocation": {
       "type": "object",
-      "required": ["id", "file", "line", "kind"],
+      "required": ["file", "line"],
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Stable identifier for this usage. Used for diffing."
-        },
         "file": {
           "type": "string",
-          "description": "Relative path from project root to the file containing this usage."
+          "maxLength": 4096,
+          "description": "Relative path from the scan root."
         },
         "line": {
           "type": "integer",
           "minimum": 1,
-          "description": "1-indexed line number of the usage."
+          "description": "1-indexed line number."
         },
-        "column": {
+        "context": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Short code snippet for human readability."
+        },
+        "usage": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Usage kind, e.g. \"import\" or \"method_call:stripe.Charge.create\"."
+        }
+      }
+    },
+    "TDMMetadata": {
+      "type": "object",
+      "required": [
+        "scan_timestamp",
+        "scanner_version",
+        "languages_detected",
+        "total_dependencies_found",
+        "scan_duration_ms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scan_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64,
+          "description": "ISO 8601 timestamp when the scan completed."
+        },
+        "scanner_version": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "thirdwatch CLI/scanner semver."
+        },
+        "repository": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Repository identifier, e.g. \"github.com/acme/payments-service\"."
+        },
+        "languages_detected": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 64 },
+          "maxItems": 100,
+          "description": "Languages detected during the scan."
+        },
+        "total_dependencies_found": {
           "type": "integer",
           "minimum": 0,
-          "description": "0-indexed column of the usage start."
+          "description": "Sum of entries across the packages + apis + sdks + infrastructure + webhooks arrays."
         },
-        "kind": {
-          "type": "string",
-          "enum": ["import", "http_call", "instantiation", "env_var", "config_key"],
-          "description": "The kind of usage detected."
-        },
-        "snippet": {
-          "type": "string",
-          "description": "Short source code snippet showing the usage (max 200 chars)."
-        },
+        "scan_duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall-clock scan time in milliseconds."
+        }
+      }
+    },
+    "TDMPackage": {
+      "type": "object",
+      "required": ["name", "ecosystem", "current_version", "manifest_file", "locations", "usage_count", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier in PURL format, e.g. \"pkg:pypi/stripe@7.0.0\"." },
+        "name": { "type": "string", "maxLength": 256, "description": "Package name, e.g. \"stripe\" or \"@aws-sdk/client-s3\"." },
+        "ecosystem": { "type": "string", "maxLength": 256, "description": "Package ecosystem: npm, pypi, go, maven, rubygems, or custom." },
+        "current_version": { "type": "string", "maxLength": 128, "description": "Installed / resolved version." },
+        "version_constraint": { "type": "string", "maxLength": 128, "description": "Constraint as written in the manifest, e.g. \"^7.0.0\"." },
+        "manifest_file": { "type": "string", "maxLength": 4096, "description": "Path to the manifest file, e.g. \"requirements.txt\"." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
+        "usage_count": { "type": "integer", "minimum": 0 },
+        "confidence": { "$ref": "#/$defs/Confidence" }
+      }
+    },
+    "TDMApi": {
+      "type": "object",
+      "required": ["url", "locations", "usage_count", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"api:stripe/charges-post\"." },
         "url": {
           "type": "string",
-          "format": "uri",
-          "description": "For http_call kind: the URL being called."
+          "maxLength": 2048,
+          "pattern": "^(https?://|\\$\\{)",
+          "description": "Literal URL or template, e.g. \"${BASE_URL}/v2/users\"."
         },
         "method": {
           "type": "string",
-          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
-          "description": "For http_call kind: the HTTP method."
-        }
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"],
+          "description": "HTTP verb."
+        },
+        "provider": {
+          "type": ["string", "null"],
+          "maxLength": 256,
+          "description": "Auto-detected provider slug; null when unknown."
+        },
+        "resolved_url": { "type": "string", "maxLength": 2048, "description": "URL after env var resolution attempt." },
+        "headers": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Header name patterns found at the call site."
+        },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
+        "usage_count": { "type": "integer", "minimum": 0 },
+        "confidence": { "$ref": "#/$defs/Confidence" }
+      }
+    },
+    "TDMSdk": {
+      "type": "object",
+      "required": ["provider", "sdk_package", "locations", "usage_count", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"sdk:aws/boto3\"." },
+        "provider": { "type": "string", "maxLength": 256, "description": "Provider slug, e.g. \"aws\", \"stripe\", \"openai\"." },
+        "sdk_package": { "type": "string", "maxLength": 256, "description": "Specific SDK package, e.g. \"boto3\" or \"@aws-sdk/client-s3\"." },
+        "services_used": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Sub-services used, e.g. [\"s3\", \"sqs\"] for AWS."
+        },
+        "api_methods": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Specific API methods called."
+        },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
+        "usage_count": { "type": "integer", "minimum": 0 },
+        "confidence": { "$ref": "#/$defs/Confidence" }
+      }
+    },
+    "TDMInfrastructure": {
+      "type": "object",
+      "required": ["type", "connection_ref", "locations", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"infra:postgresql/DATABASE_URL\"." },
+        "type": { "type": "string", "maxLength": 256, "description": "Infrastructure type: postgresql, redis, kafka, s3, etc." },
+        "connection_ref": { "type": "string", "maxLength": 512, "description": "Raw connection reference (may be an env var name). Avoid embedding credentials — use env var names instead." },
+        "resolved_host": { "type": ["string", "null"], "maxLength": 512, "description": "Resolved hostname; null if unresolvable." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
+        "confidence": { "$ref": "#/$defs/Confidence" }
+      }
+    },
+    "TDMWebhook": {
+      "type": "object",
+      "required": ["direction", "target_url", "locations", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"webhook:outbound/stripe-endpoint\"." },
+        "direction": {
+          "type": "string",
+          "enum": ["outbound_registration", "inbound_callback"],
+          "description": "Whether code registers a URL with a provider or exposes an endpoint."
+        },
+        "target_url": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^(https?://|\\$\\{|/)",
+          "description": "Target URL (outbound) or path pattern (inbound, starts with /)."
+        },
+        "provider": { "type": "string", "maxLength": 256, "description": "Provider slug if known, e.g. \"stripe\"." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
+        "confidence": { "$ref": "#/$defs/Confidence" }
       }
     }
   }
