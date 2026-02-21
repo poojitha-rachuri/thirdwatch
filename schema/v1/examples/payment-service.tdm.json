@@ -1,16 +1,16 @@
 {
   "version": "1.0",
   "metadata": {
-    "schema_version": "1.0",
     "scan_timestamp": "2026-02-21T10:00:00.000Z",
     "scanner_version": "0.1.0",
     "repository": "github.com/acme/payments-service",
     "languages_detected": ["python"],
-    "total_dependencies_found": 8,
+    "total_dependencies_found": 13,
     "scan_duration_ms": 1240
   },
   "packages": [
     {
+      "id": "pkg:pypi/stripe@7.0.0",
       "name": "stripe",
       "ecosystem": "pypi",
       "current_version": "7.0.0",
@@ -21,6 +21,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:pypi/requests@2.31.0",
       "name": "requests",
       "ecosystem": "pypi",
       "current_version": "2.31.0",
@@ -31,6 +32,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:pypi/psycopg2-binary@2.9.9",
       "name": "psycopg2-binary",
       "ecosystem": "pypi",
       "current_version": "2.9.9",
@@ -41,6 +43,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:pypi/boto3@1.34.0",
       "name": "boto3",
       "ecosystem": "pypi",
       "current_version": "1.34.0",
@@ -53,6 +56,7 @@
   ],
   "apis": [
     {
+      "id": "api:stripe/charges-post",
       "url": "https://api.stripe.com/v1/charges",
       "method": "POST",
       "provider": "stripe",
@@ -68,6 +72,7 @@
       "confidence": "high"
     },
     {
+      "id": "api:stripe/refunds-post",
       "url": "https://api.stripe.com/v1/refunds",
       "method": "POST",
       "provider": "stripe",
@@ -83,6 +88,7 @@
       "confidence": "high"
     },
     {
+      "id": "api:slack/webhook-post",
       "url": "https://hooks.slack.com/services/${SLACK_WEBHOOK_PATH}",
       "method": "POST",
       "provider": "slack",
@@ -100,6 +106,7 @@
   ],
   "sdks": [
     {
+      "id": "sdk:stripe/stripe",
       "provider": "stripe",
       "sdk_package": "stripe",
       "services_used": [],
@@ -116,6 +123,7 @@
       "confidence": "high"
     },
     {
+      "id": "sdk:aws/boto3",
       "provider": "aws",
       "sdk_package": "boto3",
       "services_used": ["s3", "ses"],
@@ -134,6 +142,7 @@
   ],
   "infrastructure": [
     {
+      "id": "infra:postgresql/DATABASE_URL",
       "type": "postgresql",
       "connection_ref": "DATABASE_URL",
       "resolved_host": "db.acme.internal",
@@ -143,6 +152,7 @@
       "confidence": "high"
     },
     {
+      "id": "infra:redis/REDIS_URL",
       "type": "redis",
       "connection_ref": "REDIS_URL",
       "resolved_host": null,
@@ -154,6 +164,7 @@
   ],
   "webhooks": [
     {
+      "id": "webhook:outbound/stripe-endpoint",
       "direction": "outbound_registration",
       "target_url": "https://api.stripe.com/v1/webhook_endpoints",
       "provider": "stripe",
@@ -163,6 +174,7 @@
       "confidence": "medium"
     },
     {
+      "id": "webhook:inbound/stripe-callback",
       "direction": "inbound_callback",
       "target_url": "/webhooks/stripe",
       "provider": "stripe",

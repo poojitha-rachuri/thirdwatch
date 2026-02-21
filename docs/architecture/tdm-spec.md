@@ -20,9 +20,11 @@ a single, versionable, diffable source of truth.
 
 3. **Location-anchored** — Every entry has a `locations` array pointing to the exact files and line numbers. This enables precise change attribution.
 
-4. **Append-only additions** — New optional fields are non-breaking. Removals and type changes require a `MAJOR` version bump and a schema changelog entry.
+4. **Stable identifiers** — Every entry type carries an optional `id` field for stable diffing across scans. See [Entry IDs](#entry-ids) for recommended formats.
 
-5. **Open standard** — Schema is Apache 2.0 licensed. Any tool can produce or consume TDM files.
+5. **Append-only additions** — New optional fields are non-breaking. Removals and type changes require a `MAJOR` version bump and a schema changelog entry.
+
+6. **Open standard** — Schema is Apache 2.0 licensed. Any tool can produce or consume TDM files.
 
 ## Schema Version
 
@@ -38,8 +40,8 @@ TDM
 ├── version: "1.0"          — Schema version (MAJOR.MINOR)
 ├── metadata: TDMMetadata   — Scan context
 ├── packages: TDMPackage[]  — Manifest-declared packages
-├── apis: TDMAPI[]          — Outbound HTTP API calls
-├── sdks: TDMSDK[]          — Provider SDK usages
+├── apis: TDMApi[]          — Outbound HTTP API calls
+├── sdks: TDMSdk[]          — Provider SDK usages
 ├── infrastructure: TDMInfrastructure[]  — DB/queue/storage connections
 └── webhooks: TDMWebhook[]  — Webhook registrations and callbacks
 ```
@@ -52,12 +54,11 @@ Describes the scan that produced this manifest.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `schema_version` | string | ✅ | TDM schema version, e.g. `"1.0"` |
 | `scan_timestamp` | string (ISO 8601) | ✅ | When the scan completed |
 | `scanner_version` | string | ✅ | thirdwatch CLI semver |
 | `repository` | string | — | Repository identifier, e.g. `"github.com/acme/payments"` |
 | `languages_detected` | string[] | ✅ | Languages detected during scan |
-| `total_dependencies_found` | integer ≥ 0 | ✅ | Total unique dependency entries |
+| `total_dependencies_found` | integer ≥ 0 | ✅ | Sum of entries across packages + apis + sdks + infrastructure + webhooks arrays |
 | `scan_duration_ms` | integer ≥ 0 | ✅ | Wall-clock scan time |
 
 ### TDMLocation
@@ -77,6 +78,7 @@ A third-party library declared in a package manifest (`package.json`, `requireme
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `id` | string | — | Stable PURL identifier, e.g. `"pkg:pypi/stripe@7.0.0"` |
 | `name` | string | ✅ | Package name, e.g. `"stripe"` |
 | `ecosystem` | string | ✅ | `npm`, `pypi`, `go`, `maven`, `rubygems`, or custom |
 | `current_version` | string | ✅ | Installed / resolved version |
@@ -86,14 +88,15 @@ A third-party library declared in a package manifest (`package.json`, `requireme
 | `usage_count` | integer ≥ 0 | ✅ | Number of import/use sites detected |
 | `confidence` | Confidence | ✅ | Detection confidence |
 
-### TDMAPI
+### TDMApi
 
 An outbound HTTP API call detected in source code.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `id` | string | — | Stable identifier, e.g. `"api:stripe/charges-post"` |
 | `url` | string | ✅ | Literal URL or template, e.g. `"${BASE_URL}/v2/users"` |
-| `method` | string | — | HTTP verb, e.g. `"GET"`, `"POST"` |
+| `method` | HTTP verb enum | — | One of: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`, `CONNECT`, `TRACE` |
 | `provider` | string \| null | — | Auto-detected provider slug; `null` when unknown |
 | `resolved_url` | string | — | URL after environment variable resolution |
 | `headers` | string[] | — | Header name patterns found at the call site |
@@ -101,12 +104,13 @@ An outbound HTTP API call detected in source code.
 | `usage_count` | integer ≥ 0 | ✅ | Number of call sites |
 | `confidence` | Confidence | ✅ | Detection confidence |
 
-### TDMSDK
+### TDMSdk
 
 A provider SDK imported and used in source code.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `id` | string | — | Stable identifier, e.g. `"sdk:aws/boto3"` |
 | `provider` | string | ✅ | Provider slug, e.g. `"aws"`, `"stripe"`, `"openai"` |
 | `sdk_package` | string | ✅ | Package name, e.g. `"boto3"`, `"@aws-sdk/client-s3"` |
 | `services_used` | string[] | — | Sub-services, e.g. `["s3", "sqs"]` for AWS |
@@ -121,8 +125,9 @@ A direct infrastructure connection (database, message queue, object storage).
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `id` | string | — | Stable identifier, e.g. `"infra:postgresql/DATABASE_URL"` |
 | `type` | string | ✅ | `postgresql`, `mysql`, `mongodb`, `redis`, `kafka`, `sqs`, `s3`, etc. |
-| `connection_ref` | string | ✅ | Raw connection reference (often an env var name) |
+| `connection_ref` | string | ✅ | Raw connection reference (often an env var name). Avoid embedding credentials. |
 | `resolved_host` | string \| null | — | Resolved hostname; `null` if unresolvable |
 | `locations` | TDMLocation[] (min 1) | ✅ | Where the connection is established |
 | `confidence` | Confidence | ✅ | Detection confidence |
@@ -133,8 +138,9 @@ A webhook registration (outbound) or inbound callback endpoint.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `id` | string | — | Stable identifier, e.g. `"webhook:outbound/stripe-endpoint"` |
 | `direction` | `"outbound_registration"` \| `"inbound_callback"` | ✅ | Whether code registers a URL or exposes an endpoint |
-| `target_url` | string | ✅ | Target URL (outbound) or path pattern (inbound) |
+| `target_url` | string | ✅ | Target URL (outbound, `https://…`) or path pattern (inbound, `/…`) |
 | `provider` | string | — | Provider slug if known, e.g. `"stripe"` |
 | `locations` | TDMLocation[] (min 1) | ✅ | Where the webhook is registered or handled |
 | `confidence` | Confidence | ✅ | Detection confidence |
@@ -147,11 +153,26 @@ A webhook registration (outbound) or inbound callback endpoint.
 | `"medium"` | Inferred with reasonable certainty (env var pattern, known SDK method) |
 | `"low"` | Heuristic or pattern-matched; manual verification recommended |
 
+## Entry IDs
+
+Every entry type carries an optional `id?: string` field. Scanners should populate this
+to enable stable diffing across TDM versions without relying on composite natural keys.
+
+Recommended ID formats:
+
+| Type | Format | Example |
+|---|---|---|
+| TDMPackage | `pkg:{ecosystem}/{name}@{version}` (PURL) | `pkg:pypi/stripe@7.0.0` |
+| TDMApi | `api:{provider\|"unknown"}/{slug}` | `api:stripe/charges-post` |
+| TDMSdk | `sdk:{provider}/{sdk_package}` | `sdk:aws/boto3` |
+| TDMInfrastructure | `infra:{type}/{connection_ref}` | `infra:postgresql/DATABASE_URL` |
+| TDMWebhook | `webhook:{direction\|"outbound"\|"inbound"}/{slug}` | `webhook:outbound/stripe-endpoint` |
+
 ## Versioning Policy
 
 | Change Type | Version Impact | Example |
 |---|---|---|
-| New optional field added | MINOR | Adding `resolved_url` to TDMAPI |
+| New optional field added | MINOR | Adding `resolved_url` to TDMApi |
 | Required field added | MAJOR | Adding `id` as required to all entities |
 | Field removed | MAJOR | Removing `version_constraint` from TDMPackage |
 | Type narrowed | MAJOR | Changing `provider: string` to `provider: ProviderSlug` |

@@ -10,32 +10,38 @@
     "version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+$",
+      "maxLength": 16,
       "description": "TDM schema version in MAJOR.MINOR format, e.g. \"1.0\"."
     },
     "metadata": { "$ref": "#/$defs/TDMMetadata" },
     "packages": {
       "type": "array",
       "items": { "$ref": "#/$defs/TDMPackage" },
+      "maxItems": 10000,
       "description": "Third-party library declarations found in manifest files."
     },
     "apis": {
       "type": "array",
-      "items": { "$ref": "#/$defs/TDMAPI" },
+      "items": { "$ref": "#/$defs/TDMApi" },
+      "maxItems": 10000,
       "description": "Outbound HTTP API calls detected in source code."
     },
     "sdks": {
       "type": "array",
-      "items": { "$ref": "#/$defs/TDMSDK" },
+      "items": { "$ref": "#/$defs/TDMSdk" },
+      "maxItems": 10000,
       "description": "Provider SDK usages detected in source code."
     },
     "infrastructure": {
       "type": "array",
       "items": { "$ref": "#/$defs/TDMInfrastructure" },
+      "maxItems": 10000,
       "description": "Direct infrastructure connections (databases, queues, object storage)."
     },
     "webhooks": {
       "type": "array",
       "items": { "$ref": "#/$defs/TDMWebhook" },
+      "maxItems": 10000,
       "description": "Webhook registrations and inbound callback endpoints."
     }
   },
@@ -52,6 +58,7 @@
       "properties": {
         "file": {
           "type": "string",
+          "maxLength": 4096,
           "description": "Relative path from the scan root."
         },
         "line": {
@@ -61,10 +68,12 @@
         },
         "context": {
           "type": "string",
+          "maxLength": 512,
           "description": "Short code snippet for human readability."
         },
         "usage": {
           "type": "string",
+          "maxLength": 256,
           "description": "Usage kind, e.g. \"import\" or \"method_call:stripe.Charge.create\"."
         }
       }
@@ -72,7 +81,6 @@
     "TDMMetadata": {
       "type": "object",
       "required": [
-        "schema_version",
         "scan_timestamp",
         "scanner_version",
         "languages_detected",
@@ -81,32 +89,32 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "schema_version": {
-          "type": "string",
-          "description": "TDM schema version, e.g. \"1.0\"."
-        },
         "scan_timestamp": {
           "type": "string",
           "format": "date-time",
+          "maxLength": 64,
           "description": "ISO 8601 timestamp when the scan completed."
         },
         "scanner_version": {
           "type": "string",
+          "maxLength": 64,
           "description": "thirdwatch CLI/scanner semver."
         },
         "repository": {
           "type": "string",
+          "maxLength": 512,
           "description": "Repository identifier, e.g. \"github.com/acme/payments-service\"."
         },
         "languages_detected": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": { "type": "string", "maxLength": 64 },
+          "maxItems": 100,
           "description": "Languages detected during the scan."
         },
         "total_dependencies_found": {
           "type": "integer",
           "minimum": 0,
-          "description": "Total number of unique dependency entries found."
+          "description": "Sum of entries across the packages + apis + sdks + infrastructure + webhooks arrays."
         },
         "scan_duration_ms": {
           "type": "integer",
@@ -120,44 +128,72 @@
       "required": ["name", "ecosystem", "current_version", "manifest_file", "locations", "usage_count", "confidence"],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "description": "Package name, e.g. \"stripe\" or \"@aws-sdk/client-s3\"." },
-        "ecosystem": { "type": "string", "description": "Package ecosystem: npm, pypi, go, maven, rubygems, or custom." },
-        "current_version": { "type": "string", "description": "Installed / resolved version." },
-        "version_constraint": { "type": "string", "description": "Constraint as written in the manifest, e.g. \"^7.0.0\"." },
-        "manifest_file": { "type": "string", "description": "Path to the manifest file, e.g. \"requirements.txt\"." },
-        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1 },
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier in PURL format, e.g. \"pkg:pypi/stripe@7.0.0\"." },
+        "name": { "type": "string", "maxLength": 256, "description": "Package name, e.g. \"stripe\" or \"@aws-sdk/client-s3\"." },
+        "ecosystem": { "type": "string", "maxLength": 256, "description": "Package ecosystem: npm, pypi, go, maven, rubygems, or custom." },
+        "current_version": { "type": "string", "maxLength": 128, "description": "Installed / resolved version." },
+        "version_constraint": { "type": "string", "maxLength": 128, "description": "Constraint as written in the manifest, e.g. \"^7.0.0\"." },
+        "manifest_file": { "type": "string", "maxLength": 4096, "description": "Path to the manifest file, e.g. \"requirements.txt\"." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
         "usage_count": { "type": "integer", "minimum": 0 },
         "confidence": { "$ref": "#/$defs/Confidence" }
       }
     },
-    "TDMAPI": {
+    "TDMApi": {
       "type": "object",
       "required": ["url", "locations", "usage_count", "confidence"],
       "additionalProperties": false,
       "properties": {
-        "url": { "type": "string", "description": "Literal URL or template, e.g. \"${BASE_URL}/v2/users\"." },
-        "method": { "type": "string", "description": "HTTP verb, e.g. \"GET\" or \"POST\"." },
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"api:stripe/charges-post\"." },
+        "url": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^(https?://|\\$\\{)",
+          "description": "Literal URL or template, e.g. \"${BASE_URL}/v2/users\"."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"],
+          "description": "HTTP verb."
+        },
         "provider": {
           "type": ["string", "null"],
+          "maxLength": 256,
           "description": "Auto-detected provider slug; null when unknown."
         },
-        "resolved_url": { "type": "string", "description": "URL after env var resolution attempt." },
-        "headers": { "type": "array", "items": { "type": "string" }, "description": "Header name patterns found at the call site." },
-        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1 },
+        "resolved_url": { "type": "string", "maxLength": 2048, "description": "URL after env var resolution attempt." },
+        "headers": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Header name patterns found at the call site."
+        },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
         "usage_count": { "type": "integer", "minimum": 0 },
         "confidence": { "$ref": "#/$defs/Confidence" }
       }
     },
-    "TDMSDK": {
+    "TDMSdk": {
       "type": "object",
       "required": ["provider", "sdk_package", "locations", "usage_count", "confidence"],
       "additionalProperties": false,
       "properties": {
-        "provider": { "type": "string", "description": "Provider slug, e.g. \"aws\", \"stripe\", \"openai\"." },
-        "sdk_package": { "type": "string", "description": "Specific SDK package, e.g. \"boto3\" or \"@aws-sdk/client-s3\"." },
-        "services_used": { "type": "array", "items": { "type": "string" }, "description": "Sub-services used, e.g. [\"s3\", \"sqs\"] for AWS." },
-        "api_methods": { "type": "array", "items": { "type": "string" }, "description": "Specific API methods called." },
-        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1 },
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"sdk:aws/boto3\"." },
+        "provider": { "type": "string", "maxLength": 256, "description": "Provider slug, e.g. \"aws\", \"stripe\", \"openai\"." },
+        "sdk_package": { "type": "string", "maxLength": 256, "description": "Specific SDK package, e.g. \"boto3\" or \"@aws-sdk/client-s3\"." },
+        "services_used": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Sub-services used, e.g. [\"s3\", \"sqs\"] for AWS."
+        },
+        "api_methods": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 256 },
+          "maxItems": 100,
+          "description": "Specific API methods called."
+        },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
         "usage_count": { "type": "integer", "minimum": 0 },
         "confidence": { "$ref": "#/$defs/Confidence" }
       }
@@ -167,10 +203,11 @@
       "required": ["type", "connection_ref", "locations", "confidence"],
       "additionalProperties": false,
       "properties": {
-        "type": { "type": "string", "description": "Infrastructure type: postgresql, redis, kafka, s3, etc." },
-        "connection_ref": { "type": "string", "description": "Raw connection reference (may be an env var name)." },
-        "resolved_host": { "type": ["string", "null"], "description": "Resolved hostname; null if unresolvable." },
-        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1 },
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"infra:postgresql/DATABASE_URL\"." },
+        "type": { "type": "string", "maxLength": 256, "description": "Infrastructure type: postgresql, redis, kafka, s3, etc." },
+        "connection_ref": { "type": "string", "maxLength": 512, "description": "Raw connection reference (may be an env var name). Avoid embedding credentials — use env var names instead." },
+        "resolved_host": { "type": ["string", "null"], "maxLength": 512, "description": "Resolved hostname; null if unresolvable." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
         "confidence": { "$ref": "#/$defs/Confidence" }
       }
     },
@@ -179,14 +216,20 @@
       "required": ["direction", "target_url", "locations", "confidence"],
       "additionalProperties": false,
       "properties": {
+        "id": { "type": "string", "maxLength": 256, "description": "Stable identifier, e.g. \"webhook:outbound/stripe-endpoint\"." },
         "direction": {
           "type": "string",
           "enum": ["outbound_registration", "inbound_callback"],
           "description": "Whether code registers a URL with a provider or exposes an endpoint."
         },
-        "target_url": { "type": "string", "description": "Target URL (outbound) or path pattern (inbound)." },
-        "provider": { "type": "string", "description": "Provider slug if known, e.g. \"stripe\"." },
-        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1 },
+        "target_url": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^(https?://|\\$\\{|/)",
+          "description": "Target URL (outbound) or path pattern (inbound, starts with /)."
+        },
+        "provider": { "type": "string", "maxLength": 256, "description": "Provider slug if known, e.g. \"stripe\"." },
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/TDMLocation" }, "minItems": 1, "maxItems": 1000 },
         "confidence": { "$ref": "#/$defs/Confidence" }
       }
     }

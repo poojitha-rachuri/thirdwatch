@@ -3,13 +3,14 @@ export type {
   TDM,
   TDMMetadata,
   TDMPackage,
-  TDMAPI,
-  TDMSDK,
+  TDMApi,
+  TDMSdk,
   TDMInfrastructure,
   TDMWebhook,
   TDMLocation,
+  TDMValidationIssue,
   Confidence,
   ChangeCategory,
   Priority,
 } from "./types.js";
-export { parseTDM, parseTDMFromString, TDMValidationError } from "./validate.js";
+export { parseTDM, parseTDMFromString, TDMValidationError, TDM_SCHEMA_OBJECT } from "./validate.js";

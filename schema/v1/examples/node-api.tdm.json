@@ -1,16 +1,16 @@
 {
   "version": "1.0",
   "metadata": {
-    "schema_version": "1.0",
     "scan_timestamp": "2026-02-21T11:30:00.000Z",
     "scanner_version": "0.1.0",
     "repository": "github.com/acme/node-api",
     "languages_detected": ["javascript"],
-    "total_dependencies_found": 9,
+    "total_dependencies_found": 13,
     "scan_duration_ms": 820
   },
   "packages": [
     {
+      "id": "pkg:npm/%40aws-sdk/client-s3@3.515.0",
       "name": "@aws-sdk/client-s3",
       "ecosystem": "npm",
       "current_version": "3.515.0",
@@ -21,6 +21,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:npm/%40aws-sdk/client-ses@3.515.0",
       "name": "@aws-sdk/client-ses",
       "ecosystem": "npm",
       "current_version": "3.515.0",
@@ -31,6 +32,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:npm/openai@4.28.0",
       "name": "openai",
       "ecosystem": "npm",
       "current_version": "4.28.0",
@@ -41,6 +43,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:npm/pg@8.11.3",
       "name": "pg",
       "ecosystem": "npm",
       "current_version": "8.11.3",
@@ -51,6 +54,7 @@
       "confidence": "high"
     },
     {
+      "id": "pkg:npm/ioredis@5.3.2",
       "name": "ioredis",
       "ecosystem": "npm",
       "current_version": "5.3.2",
@@ -63,6 +67,7 @@
   ],
   "apis": [
     {
+      "id": "api:openai/chat-completions-post",
       "url": "https://api.openai.com/v1/chat/completions",
       "method": "POST",
       "provider": "openai",
@@ -78,6 +83,7 @@
       "confidence": "high"
     },
     {
+      "id": "api:openai/embeddings-post",
       "url": "https://api.openai.com/v1/embeddings",
       "method": "POST",
       "provider": "openai",
@@ -93,6 +99,7 @@
       "confidence": "high"
     },
     {
+      "id": "api:unknown/billing-invoices-post",
       "url": "${INTERNAL_BILLING_API}/v2/invoices",
       "method": "POST",
       "provider": null,
@@ -110,6 +117,7 @@
   ],
   "sdks": [
     {
+      "id": "sdk:aws/%40aws-sdk/client-s3",
       "provider": "aws",
       "sdk_package": "@aws-sdk/client-s3",
       "services_used": ["s3"],
@@ -125,6 +133,7 @@
       "confidence": "high"
     },
     {
+      "id": "sdk:aws/%40aws-sdk/client-ses",
       "provider": "aws",
       "sdk_package": "@aws-sdk/client-ses",
       "services_used": ["ses"],
@@ -136,6 +145,7 @@
       "confidence": "high"
     },
     {
+      "id": "sdk:openai/openai",
       "provider": "openai",
       "sdk_package": "openai",
       "services_used": [],
@@ -152,6 +162,7 @@
   ],
   "infrastructure": [
     {
+      "id": "infra:postgresql/DATABASE_URL",
       "type": "postgresql",
       "connection_ref": "DATABASE_URL",
       "resolved_host": null,
@@ -166,6 +177,7 @@
       "confidence": "high"
     },
     {
+      "id": "infra:redis/REDIS_URL",
       "type": "redis",
       "connection_ref": "REDIS_URL",
       "resolved_host": null,

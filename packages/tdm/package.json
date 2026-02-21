@@ -7,10 +7,9 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./schema": "./../../schema/v1/tdm.schema.json"
+    }
   },
   "files": ["dist"],
   "scripts": {
