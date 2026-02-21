@@ -1,23 +1,28 @@
-// apps/cli — Plan 05 implements the full CLI
-// Stub: wire up Commander program
-
+// apps/cli — thirdwatch CLI entry point
 import { Command } from "commander";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { scanCommand } from "./commands/scan.js";
+import { checkForUpdates } from "./update-check.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const { version } = JSON.parse(
+  readFileSync(join(__dirname, "../package.json"), "utf8"),
+) as { version: string };
 
 const program = new Command();
 
 program
   .name("thirdwatch")
-  .description("Know before you break — map every external dependency in your codebase.")
-  .version("0.1.0", "-v, --version");
+  .description(
+    "Know before you break — map every external dependency in your codebase.",
+  )
+  .version(version, "-v, --version");
 
-program
-  .command("scan [path]")
-  .description("Scan a codebase and produce a Thirdwatch Dependency Manifest (TDM)")
-  .option("-o, --output <file>", "Output file path", "./thirdwatch.json")
-  .option("-f, --format <format>", "Output format: json or yaml", "json")
-  .action((_path: string | undefined) => {
-    console.error("thirdwatch scan is not yet implemented — see Plan 05");
-    process.exitCode = 1;
-  });
+program.addCommand(scanCommand);
+
+// Non-blocking update check (fire and forget)
+void checkForUpdates(version);
 
 program.parse();
