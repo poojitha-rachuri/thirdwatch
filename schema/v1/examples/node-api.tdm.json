@@ -1,0 +1,184 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "schema_version": "1.0",
+    "scan_timestamp": "2026-02-21T11:30:00.000Z",
+    "scanner_version": "0.1.0",
+    "repository": "github.com/acme/node-api",
+    "languages_detected": ["javascript"],
+    "total_dependencies_found": 9,
+    "scan_duration_ms": 820
+  },
+  "packages": [
+    {
+      "name": "@aws-sdk/client-s3",
+      "ecosystem": "npm",
+      "current_version": "3.515.0",
+      "version_constraint": "^3.515.0",
+      "manifest_file": "package.json",
+      "locations": [{ "file": "package.json", "line": 12 }],
+      "usage_count": 1,
+      "confidence": "high"
+    },
+    {
+      "name": "@aws-sdk/client-ses",
+      "ecosystem": "npm",
+      "current_version": "3.515.0",
+      "version_constraint": "^3.515.0",
+      "manifest_file": "package.json",
+      "locations": [{ "file": "package.json", "line": 13 }],
+      "usage_count": 1,
+      "confidence": "high"
+    },
+    {
+      "name": "openai",
+      "ecosystem": "npm",
+      "current_version": "4.28.0",
+      "version_constraint": "^4.28.0",
+      "manifest_file": "package.json",
+      "locations": [{ "file": "package.json", "line": 18 }],
+      "usage_count": 1,
+      "confidence": "high"
+    },
+    {
+      "name": "pg",
+      "ecosystem": "npm",
+      "current_version": "8.11.3",
+      "version_constraint": "^8.11.0",
+      "manifest_file": "package.json",
+      "locations": [{ "file": "package.json", "line": 20 }],
+      "usage_count": 1,
+      "confidence": "high"
+    },
+    {
+      "name": "ioredis",
+      "ecosystem": "npm",
+      "current_version": "5.3.2",
+      "version_constraint": "^5.3.0",
+      "manifest_file": "package.json",
+      "locations": [{ "file": "package.json", "line": 16 }],
+      "usage_count": 1,
+      "confidence": "high"
+    }
+  ],
+  "apis": [
+    {
+      "url": "https://api.openai.com/v1/chat/completions",
+      "method": "POST",
+      "provider": "openai",
+      "locations": [
+        {
+          "file": "src/services/ai.ts",
+          "line": 34,
+          "context": "openai.chat.completions.create({ model: 'gpt-4o', messages })",
+          "usage": "method_call:openai.chat.completions.create"
+        }
+      ],
+      "usage_count": 3,
+      "confidence": "high"
+    },
+    {
+      "url": "https://api.openai.com/v1/embeddings",
+      "method": "POST",
+      "provider": "openai",
+      "locations": [
+        {
+          "file": "src/services/ai.ts",
+          "line": 58,
+          "context": "openai.embeddings.create({ model: 'text-embedding-3-small', input })",
+          "usage": "method_call:openai.embeddings.create"
+        }
+      ],
+      "usage_count": 2,
+      "confidence": "high"
+    },
+    {
+      "url": "${INTERNAL_BILLING_API}/v2/invoices",
+      "method": "POST",
+      "provider": null,
+      "locations": [
+        {
+          "file": "src/services/billing.ts",
+          "line": 22,
+          "context": "fetch(`${process.env.INTERNAL_BILLING_API}/v2/invoices`, { method: 'POST' })",
+          "usage": "http_call"
+        }
+      ],
+      "usage_count": 2,
+      "confidence": "medium"
+    }
+  ],
+  "sdks": [
+    {
+      "provider": "aws",
+      "sdk_package": "@aws-sdk/client-s3",
+      "services_used": ["s3"],
+      "api_methods": [
+        "PutObjectCommand",
+        "GetObjectCommand",
+        "DeleteObjectCommand"
+      ],
+      "locations": [
+        { "file": "src/storage/s3.ts", "line": 1, "usage": "import" }
+      ],
+      "usage_count": 6,
+      "confidence": "high"
+    },
+    {
+      "provider": "aws",
+      "sdk_package": "@aws-sdk/client-ses",
+      "services_used": ["ses"],
+      "api_methods": ["SendEmailCommand"],
+      "locations": [
+        { "file": "src/notifications/email.ts", "line": 1, "usage": "import" }
+      ],
+      "usage_count": 2,
+      "confidence": "high"
+    },
+    {
+      "provider": "openai",
+      "sdk_package": "openai",
+      "services_used": [],
+      "api_methods": [
+        "chat.completions.create",
+        "embeddings.create"
+      ],
+      "locations": [
+        { "file": "src/services/ai.ts", "line": 1, "usage": "import" }
+      ],
+      "usage_count": 5,
+      "confidence": "high"
+    }
+  ],
+  "infrastructure": [
+    {
+      "type": "postgresql",
+      "connection_ref": "DATABASE_URL",
+      "resolved_host": null,
+      "locations": [
+        {
+          "file": "src/db/pool.ts",
+          "line": 4,
+          "context": "new Pool({ connectionString: process.env.DATABASE_URL })",
+          "usage": "env_var"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "type": "redis",
+      "connection_ref": "REDIS_URL",
+      "resolved_host": null,
+      "locations": [
+        {
+          "file": "src/cache/client.ts",
+          "line": 3,
+          "context": "new Redis(process.env.REDIS_URL)",
+          "usage": "env_var"
+        }
+      ],
+      "confidence": "high"
+    }
+  ],
+  "webhooks": []
+}
