@@ -31,12 +31,13 @@ jobs:
       - name: Build all packages
         run: pnpm turbo run build
 
-      - name: Create Release PR or Publish
+      # Creates a "Version Packages" PR when changesets are present.
+      # To enable npm publishing, add an NPM_TOKEN secret to the repo and
+      # uncomment: publish: pnpm release
+      - name: Create Release PR
         uses: changesets/action@v1
         with:
-          publish: pnpm release
           title: "chore: release packages"
           commit: "chore: release packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
