@@ -16,3 +16,9 @@ export { loadConfig, loadIgnore } from "./config.js";
 export type { ThirdwatchConfig } from "./config.js";
 
 export { resolveUrl, loadEnvFile, buildEnvMap } from "./resolve.js";
+
+export { loadSDKRegistry, buildPackageProviderMap, buildUrlProviderMap } from "./registry.js";
+export type { SDKRegistryEntry, SDKPatternEntry } from "./registry.js";
+
+export { scoreConfidence } from "./confidence.js";
+export type { DetectionMethod } from "./confidence.js";

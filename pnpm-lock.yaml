@@ -226,6 +226,9 @@ importers:
       '@thirdwatch/core':
         specifier: workspace:*
         version: link:../../core
+      '@thirdwatch/tdm':
+        specifier: workspace:*
+        version: link:../../tdm
       tree-sitter-python:
         specifier: ^0.21.0
         version: 0.21.0(tree-sitter@0.21.1)
