@@ -5,7 +5,7 @@ import * as yaml from "js-yaml";
 // Under NodeNext, tsc sees the namespace rather than the callable; vitest/vite
 // may double-wrap it. This two-step cast handles both build and runtime.
 import _ignoreImport from "ignore";
-type Ignore = import("ignore").Ignore;
+import type { Ignore } from "ignore";
 // At runtime the import may be the factory itself or `{ default: factory }`
 const _raw = _ignoreImport as unknown;
 const ignore: () => Ignore =
