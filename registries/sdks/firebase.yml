@@ -1,0 +1,38 @@
+provider: firebase
+display_name: "Firebase / Google"
+homepage: "https://firebase.google.com"
+changelog_url: "https://firebase.google.com/support/releases"
+
+patterns:
+  npm:
+    - package: "firebase"
+      import_patterns:
+        - "firebase/app"
+        - "firebase/auth"
+        - "firebase/firestore"
+        - "firebase/storage"
+        - "firebase/functions"
+        - "initializeApp"
+    - package: "firebase-admin"
+      import_patterns:
+        - "firebase-admin"
+        - "admin.initializeApp"
+  pypi:
+    - package: "firebase-admin"
+      import_patterns:
+        - "import firebase_admin"
+        - "from firebase_admin"
+        - "firebase_admin.initialize_app"
+
+known_api_base_urls:
+  - "https://firebaseio.com"
+  - "https://firestore.googleapis.com"
+  - "https://identitytoolkit.googleapis.com"
+  - "https://fcm.googleapis.com"
+
+env_var_patterns:
+  - "FIREBASE_API_KEY"
+  - "FIREBASE_PROJECT_ID"
+  - "FIREBASE_APP_ID"
+  - "GOOGLE_APPLICATION_CREDENTIALS"
+  - "FIREBASE_PRIVATE_KEY"

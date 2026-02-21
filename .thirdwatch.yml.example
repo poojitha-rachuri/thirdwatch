@@ -1,0 +1,43 @@
+# Thirdwatch configuration file
+# Copy to .thirdwatch.yml and customize for your project
+
+# Output format: json | yaml | table (default: json)
+output: json
+
+# Output file path (default: thirdwatch.tdm.json)
+outFile: thirdwatch.tdm.json
+
+# Languages to scan (default: auto-detect)
+# languages:
+#   - python
+#   - javascript
+#   - typescript
+
+# Directories to scan (default: current directory)
+# roots:
+#   - ./src
+#   - ./lib
+
+# Additional ignore patterns (also reads .thirdwatchignore)
+ignore:
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "**/test/**"
+  - "**/tests/**"
+  - "**/__tests__/**"
+  - "**/fixtures/**"
+
+# Registry overrides: add local or private SDK patterns
+# registryOverrides:
+#   - provider: my-internal-sdk
+#     patterns:
+#       npm:
+#         - package: "@mycompany/internal-sdk"
+#           import_patterns:
+#             - "@mycompany/internal-sdk"
+
+# Watcher configuration (Phase 2 - requires cloud account)
+# watcher:
+#   enabled: true
+#   webhookUrl: https://hooks.thirdwatch.dev/v1/ingest
+#   apiKey: tw_live_...

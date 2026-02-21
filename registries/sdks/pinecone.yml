@@ -1,0 +1,28 @@
+provider: pinecone
+display_name: "Pinecone"
+homepage: "https://pinecone.io"
+changelog_url: "https://docs.pinecone.io/changelog"
+
+patterns:
+  npm:
+    - package: "@pinecone-database/pinecone"
+      import_patterns:
+        - "@pinecone-database/pinecone"
+        - "Pinecone"
+        - "PineconeClient"
+  pypi:
+    - package: "pinecone-client"
+      import_patterns:
+        - "import pinecone"
+        - "from pinecone"
+        - "Pinecone"
+        - "pinecone.init"
+
+known_api_base_urls:
+  - "https://controller.pinecone.io"
+  - "https://*.pinecone.io"
+
+env_var_patterns:
+  - "PINECONE_API_KEY"
+  - "PINECONE_ENVIRONMENT"
+  - "PINECONE_INDEX"

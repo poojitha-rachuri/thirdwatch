@@ -1,0 +1,50 @@
+Business Source License 1.1
+
+Licensor: Thirdwatch, Inc.
+Licensed Work: Thirdwatch Cloud Features
+            The Licensed Work is (c) 2026 Thirdwatch, Inc.
+Additional Use Grant: You may make production use of the Licensed Work,
+            provided such use does not include offering the Licensed Work
+            to third parties on a hosted or embedded basis in order to
+            compete with Thirdwatch's paid version(s) of the software.
+Change Date: Four years from the date the Licensed Work is published.
+Change License: Apache License, Version 2.0
+
+For information about alternative licensing arrangements, contact:
+legal@thirdwatch.dev
+
+---
+
+This applies to the following directories:
+  apps/api/
+  apps/worker/
+  packages/watcher/
+  packages/analyzer/
+  packages/notifier/
+
+All other files in this repository are Apache 2.0 licensed (see LICENSE).
+
+---
+
+Business Source License 1.1
+
+Parameters
+
+Licensor: Thirdwatch, Inc.
+
+Licensed Work: The Licensed Work is (c) 2026 Thirdwatch, Inc.
+
+Additional Use Grant: You may make use of the Licensed Work, provided
+that you may not use the Licensed Work for a Commercial Purpose. A
+"Commercial Purpose" is any use that directly or indirectly generates
+revenue, including but not limited to offering a competing monitoring
+or dependency tracking service to third parties.
+
+Change Date: The earlier of 2029-02-21 or a date specified at
+https://thirdwatch.dev/bsl-change-date
+
+Change License: Apache License, Version 2.0
+
+---
+
+For more information on the BSL, see https://mariadb.com/bsl11/

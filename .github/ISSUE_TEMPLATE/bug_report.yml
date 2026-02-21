@@ -1,0 +1,66 @@
+name: Bug Report
+description: Something isn't working correctly
+title: "[bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill in every field. Incomplete reports will be closed after 7 days without follow-up.
+
+  - type: input
+    id: version
+    attributes:
+      label: Thirdwatch version
+      description: Run `thirdwatch --version`
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language being scanned
+      options:
+        - JavaScript / TypeScript
+        - Python
+        - Go
+        - Multiple
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        A minimal code snippet or link to a repo that triggers the bug.
+        Do NOT include real credentials, API keys, or proprietary code.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected TDM output (or behavior)
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual TDM output (or behavior)
+      render: yaml
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 15.3, Ubuntu 24.04, Windows 11"
+    validations:
+      required: true

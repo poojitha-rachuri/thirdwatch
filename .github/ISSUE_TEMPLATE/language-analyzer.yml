@@ -1,0 +1,50 @@
+name: New Language Analyzer Proposal
+description: Propose adding support for a new programming language
+title: "[plugin]: Add <language> analyzer"
+labels: ["plugin: new language", "help wanted"]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language name
+      placeholder: "Ruby"
+    validations:
+      required: true
+
+  - type: input
+    id: grammar
+    attributes:
+      label: tree-sitter grammar npm package
+      placeholder: "tree-sitter-ruby"
+    validations:
+      required: true
+
+  - type: textarea
+    id: http_clients
+    attributes:
+      label: HTTP client libraries to detect
+      description: List the primary HTTP clients used in this language and the call patterns to detect.
+      placeholder: |
+        - Net::HTTP — Net::HTTP.get(URI.parse(url))
+        - Faraday — conn.get('/api/endpoint')
+        - HTTParty — HTTParty.get(url)
+    validations:
+      required: true
+
+  - type: textarea
+    id: sdk_patterns
+    attributes:
+      label: Top 5 SDKs to detect
+      placeholder: |
+        - AWS SDK (aws-sdk gem) — Aws::S3::Client.new
+        - Stripe (stripe gem) — Stripe::Charge.create
+
+  - type: checkboxes
+    id: commitment
+    attributes:
+      label: Contributor commitment
+      options:
+        - label: I have verified a tree-sitter grammar exists for this language
+          required: true
+        - label: I am willing to implement this (submit a PR)
+          required: false

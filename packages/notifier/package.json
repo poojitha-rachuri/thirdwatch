@@ -1,0 +1,25 @@
+{
+  "name": "@thirdwatch/notifier",
+  "version": "0.1.0",
+  "description": "Thirdwatch notifier package",
+  "license": "SEE LICENSE IN ../../LICENSE-CLOUD",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@thirdwatch/tdm": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

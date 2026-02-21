@@ -1,0 +1,38 @@
+provider: datadog
+display_name: "Datadog"
+homepage: "https://datadoghq.com"
+changelog_url: "https://docs.datadoghq.com/agent/versions/"
+
+patterns:
+  npm:
+    - package: "dd-trace"
+      import_patterns:
+        - "dd-trace"
+        - "tracer.init"
+    - package: "@datadog/datadog-api-client"
+      import_patterns:
+        - "@datadog/datadog-api-client"
+  pypi:
+    - package: "ddtrace"
+      import_patterns:
+        - "import ddtrace"
+        - "from ddtrace"
+        - "ddtrace.patch"
+    - package: "datadog"
+      import_patterns:
+        - "import datadog"
+        - "from datadog"
+        - "DogStatsd"
+
+known_api_base_urls:
+  - "https://api.datadoghq.com"
+  - "https://api.datadoghq.eu"
+  - "https://http-intake.logs.datadoghq.com"
+
+env_var_patterns:
+  - "DD_API_KEY"
+  - "DD_APP_KEY"
+  - "DD_SITE"
+  - "DD_ENV"
+  - "DD_SERVICE"
+  - "DATADOG_API_KEY"

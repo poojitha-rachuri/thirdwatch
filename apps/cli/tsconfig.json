@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true
+  },
+  "references": [
+    { "path": "../../packages/core" },
+    { "path": "../../packages/tdm" },
+    { "path": "../../packages/languages/python" },
+    { "path": "../../packages/languages/javascript" }
+  ],
+  "include": ["src"]
+}

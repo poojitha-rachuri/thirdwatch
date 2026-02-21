@@ -1,0 +1,29 @@
+provider: twilio
+display_name: "Twilio"
+homepage: "https://twilio.com"
+changelog_url: "https://www.twilio.com/en-us/changelog"
+
+patterns:
+  npm:
+    - package: "twilio"
+      import_patterns:
+        - "twilio"
+        - "Twilio"
+  pypi:
+    - package: "twilio"
+      import_patterns:
+        - "import twilio"
+        - "from twilio"
+        - "twilio.rest"
+        - "Client"
+
+known_api_base_urls:
+  - "https://api.twilio.com"
+  - "https://messaging.twilio.com"
+  - "https://verify.twilio.com"
+
+env_var_patterns:
+  - "TWILIO_ACCOUNT_SID"
+  - "TWILIO_AUTH_TOKEN"
+  - "TWILIO_API_KEY"
+  - "TWILIO_API_SECRET"

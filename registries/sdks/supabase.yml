@@ -1,0 +1,29 @@
+provider: supabase
+display_name: "Supabase"
+homepage: "https://supabase.com"
+changelog_url: "https://supabase.com/changelog"
+
+patterns:
+  npm:
+    - package: "@supabase/supabase-js"
+      import_patterns:
+        - "@supabase/supabase-js"
+        - "createClient"
+        - "SupabaseClient"
+  pypi:
+    - package: "supabase"
+      import_patterns:
+        - "import supabase"
+        - "from supabase"
+        - "create_client"
+
+known_api_base_urls:
+  - "https://*.supabase.co"
+  - "https://*.supabase.com"
+
+env_var_patterns:
+  - "SUPABASE_URL"
+  - "SUPABASE_ANON_KEY"
+  - "SUPABASE_SERVICE_ROLE_KEY"
+  - "NEXT_PUBLIC_SUPABASE_URL"
+  - "NEXT_PUBLIC_SUPABASE_ANON_KEY"

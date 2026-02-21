@@ -1,0 +1,39 @@
+# Thirdwatch CODEOWNERS
+# The last matching rule wins.
+
+# Global fallback — core maintainers review everything
+*                                   @thirdwatch/core-maintainers
+
+# Scanner engine and plugin interface
+/packages/core/                     @thirdwatch/core-maintainers
+/packages/tdm/                      @thirdwatch/core-maintainers
+
+# Language analyzers — scanner maintainers + one core maintainer
+/packages/languages/                @thirdwatch/core-maintainers
+/plugins/                           @thirdwatch/core-maintainers
+
+# Registries — lower bar, registry maintainers can approve
+/registries/                        @thirdwatch/registry-maintainers
+
+# Schema spec — never change without core sign-off
+/schema/                            @thirdwatch/core-maintainers
+
+# Cloud services — internal only
+/apps/api/                          @thirdwatch/cloud-team
+/apps/worker/                       @thirdwatch/cloud-team
+/packages/watcher/                  @thirdwatch/cloud-team
+/packages/analyzer/                 @thirdwatch/cloud-team
+/packages/notifier/                 @thirdwatch/cloud-team
+
+# Website
+/apps/web/                          @thirdwatch/web-maintainers
+
+# CLI
+/apps/cli/                          @thirdwatch/core-maintainers
+
+# CI/CD and release infrastructure
+/.github/                           @thirdwatch/core-maintainers
+
+# License files — never allow external modification
+/LICENSE                            @thirdwatch/core-maintainers
+/LICENSE-CLOUD                      @thirdwatch/core-maintainers

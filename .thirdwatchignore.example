@@ -1,0 +1,39 @@
+# .thirdwatchignore
+# Follows .gitignore syntax. Copy to .thirdwatchignore in your project root.
+#
+# Thirdwatch automatically respects your .gitignore.
+# Use this file for additional exclusions specific to dependency scanning.
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/*.test.py
+**/*.spec.js
+**/test/
+**/tests/
+**/__tests__/
+**/conftest.py
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Fixtures and mocks
+**/fixtures/
+**/mocks/
+**/stubs/
+
+# Generated files
+**/*.generated.ts
+**/*.pb.ts
+**/generated/
+
+# Vendor / vendored dependencies
+vendor/
+**/vendor/
+
+# Documentation examples (may contain illustrative, non-real imports)
+docs/examples/

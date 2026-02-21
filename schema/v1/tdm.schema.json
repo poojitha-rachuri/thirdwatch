@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://thirdwatch.dev/schema/v1/tdm.schema.json",
+  "title": "Thirdwatch Dependency Manifest (TDM)",
+  "description": "A manifest of external dependencies detected in a codebase — APIs, SDKs, packages, and infrastructure connections.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "scanner", "project", "dependencies"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0",
+      "description": "TDM schema version. Always '1.0' for v1."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when this manifest was generated."
+    },
+    "scanner": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "root"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable, unique project identifier (e.g., git remote URL or manual slug)."
+        },
+        "name": { "type": "string" },
+        "root": {
+          "type": "string",
+          "description": "Absolute path to scanned root directory."
+        },
+        "vcsRevision": {
+          "type": "string",
+          "description": "Git commit SHA or VCS revision at scan time."
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Dependency" }
+    }
+  },
+  "$defs": {
+    "Dependency": {
+      "type": "object",
+      "required": ["id", "type", "provider", "usages"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier for this dependency entry. Used for diffing between scans."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["sdk", "http_api", "package", "infrastructure", "webhook"],
+          "description": "The category of external dependency."
+        },
+        "provider": {
+          "type": "string",
+          "description": "Provider slug (e.g., 'stripe', 'aws', 'openai'). Matches registries/sdks/<slug>.yml."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Human-readable provider name."
+        },
+        "packageName": {
+          "type": "string",
+          "description": "The specific package name (e.g., '@aws-sdk/client-s3', 'boto3')."
+        },
+        "packageVersion": {
+          "type": "string",
+          "description": "Installed version of the package, if resolvable."
+        },
+        "language": {
+          "type": "string",
+          "enum": ["python", "javascript", "typescript", "go", "ruby", "java", "csharp", "rust"],
+          "description": "Programming language where this dependency was detected."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence score (0-1) of the detection."
+        },
+        "usages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Usage" }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Provider-specific metadata from the registry.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "Usage": {
+      "type": "object",
+      "required": ["id", "file", "line", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier for this usage. Used for diffing."
+        },
+        "file": {
+          "type": "string",
+          "description": "Relative path from project root to the file containing this usage."
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-indexed line number of the usage."
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-indexed column of the usage start."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["import", "http_call", "instantiation", "env_var", "config_key"],
+          "description": "The kind of usage detected."
+        },
+        "snippet": {
+          "type": "string",
+          "description": "Short source code snippet showing the usage (max 200 chars)."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "For http_call kind: the URL being called."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+          "description": "For http_call kind: the HTTP method."
+        }
+      }
+    }
+  }
+}

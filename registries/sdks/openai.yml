@@ -1,0 +1,26 @@
+provider: openai
+display_name: "OpenAI"
+homepage: "https://openai.com"
+changelog_url: "https://platform.openai.com/docs/changelog"
+
+patterns:
+  npm:
+    - package: "openai"
+      import_patterns:
+        - "openai"
+        - "OpenAI"
+  pypi:
+    - package: "openai"
+      import_patterns:
+        - "import openai"
+        - "from openai"
+        - "OpenAI"
+        - "AsyncOpenAI"
+
+known_api_base_urls:
+  - "https://api.openai.com"
+
+env_var_patterns:
+  - "OPENAI_API_KEY"
+  - "OPENAI_ORG_ID"
+  - "OPENAI_BASE_URL"

@@ -1,0 +1,27 @@
+provider: sendgrid
+display_name: "SendGrid / Twilio"
+homepage: "https://sendgrid.com"
+changelog_url: "https://sendgrid.com/en-us/blog/category/product"
+
+patterns:
+  npm:
+    - package: "@sendgrid/mail"
+      import_patterns:
+        - "@sendgrid/mail"
+        - "sgMail"
+    - package: "@sendgrid/client"
+      import_patterns:
+        - "@sendgrid/client"
+  pypi:
+    - package: "sendgrid"
+      import_patterns:
+        - "import sendgrid"
+        - "from sendgrid"
+        - "SendGridAPIClient"
+
+known_api_base_urls:
+  - "https://api.sendgrid.com"
+
+env_var_patterns:
+  - "SENDGRID_API_KEY"
+  - "SENDGRID_FROM_EMAIL"

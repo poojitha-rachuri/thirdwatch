@@ -1,0 +1,37 @@
+provider: sentry
+display_name: "Sentry"
+homepage: "https://sentry.io"
+changelog_url: "https://sentry.io/changelog/"
+
+patterns:
+  npm:
+    - package: "@sentry/node"
+      import_patterns:
+        - "@sentry/node"
+        - "Sentry.init"
+    - package: "@sentry/nextjs"
+      import_patterns:
+        - "@sentry/nextjs"
+    - package: "@sentry/react"
+      import_patterns:
+        - "@sentry/react"
+    - package: "@sentry/browser"
+      import_patterns:
+        - "@sentry/browser"
+  pypi:
+    - package: "sentry-sdk"
+      import_patterns:
+        - "import sentry_sdk"
+        - "from sentry_sdk"
+        - "sentry_sdk.init"
+
+known_api_base_urls:
+  - "https://sentry.io"
+  - "https://o0.ingest.sentry.io"
+
+env_var_patterns:
+  - "SENTRY_DSN"
+  - "SENTRY_AUTH_TOKEN"
+  - "SENTRY_ORG"
+  - "SENTRY_PROJECT"
+  - "NEXT_PUBLIC_SENTRY_DSN"

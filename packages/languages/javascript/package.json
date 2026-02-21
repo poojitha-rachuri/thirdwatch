@@ -1,0 +1,38 @@
+{
+  "name": "@thirdwatch/language-javascript",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript language analyzer plugin for Thirdwatch",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "src/queries"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@thirdwatch/core": "workspace:*",
+    "tree-sitter-javascript": "^0.21.0",
+    "tree-sitter-typescript": "^0.21.0",
+    "web-tree-sitter": "^0.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "keywords": ["thirdwatch-plugin"],
+  "publishConfig": {
+    "access": "public"
+  }
+}

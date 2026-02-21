@@ -1,0 +1,22 @@
+provider: resend
+display_name: "Resend"
+homepage: "https://resend.com"
+changelog_url: "https://resend.com/changelog"
+
+patterns:
+  npm:
+    - package: "resend"
+      import_patterns:
+        - "resend"
+        - "Resend"
+  pypi:
+    - package: "resend"
+      import_patterns:
+        - "import resend"
+        - "from resend"
+
+known_api_base_urls:
+  - "https://api.resend.com"
+
+env_var_patterns:
+  - "RESEND_API_KEY"

@@ -1,0 +1,26 @@
+provider: stripe
+display_name: "Stripe"
+homepage: "https://stripe.com"
+changelog_url: "https://stripe.com/docs/changelog"
+
+patterns:
+  npm:
+    - package: "stripe"
+      import_patterns:
+        - "stripe"
+        - "Stripe"
+  pypi:
+    - package: "stripe"
+      import_patterns:
+        - "import stripe"
+        - "from stripe"
+
+known_api_base_urls:
+  - "https://api.stripe.com"
+  - "https://files.stripe.com"
+
+env_var_patterns:
+  - "STRIPE_API_KEY"
+  - "STRIPE_SECRET_KEY"
+  - "STRIPE_PUBLISHABLE_KEY"
+  - "STRIPE_WEBHOOK_SECRET"

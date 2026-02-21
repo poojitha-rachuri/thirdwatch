@@ -1,0 +1,26 @@
+{
+  "name": "thirdwatch-language-YOURNAME",
+  "version": "0.1.0",
+  "description": "Thirdwatch language analyzer plugin for YOURLANGUAGE",
+  "keywords": [
+    "thirdwatch-plugin",
+    "thirdwatch-analyzer",
+    "YOURLANGUAGE"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@thirdwatch/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@thirdwatch/core": "workspace:*",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  },
+  "license": "Apache-2.0"
+}

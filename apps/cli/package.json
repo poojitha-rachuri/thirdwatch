@@ -1,0 +1,51 @@
+{
+  "name": "thirdwatch",
+  "version": "0.1.0",
+  "description": "Know before you break — map every external dependency in your codebase",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "thirdwatch": "./bin/thirdwatch.js"
+  },
+  "main": "./dist/index.js",
+  "files": ["dist", "bin"],
+  "scripts": {
+    "build": "tsc && node -e \"const fs=require('fs'); const p='dist/index.js'; fs.chmodSync(p, '755');\"",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "dev": "node --watch dist/index.js",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@thirdwatch/core": "workspace:*",
+    "@thirdwatch/language-javascript": "workspace:*",
+    "@thirdwatch/language-python": "workspace:*",
+    "@thirdwatch/tdm": "workspace:*",
+    "commander": "^12.0.0",
+    "js-yaml": "^4.1.0",
+    "ora": "^8.0.0",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "api-monitoring",
+    "dependency-scanning",
+    "sbom",
+    "code-analysis",
+    "tree-sitter",
+    "third-party-apis",
+    "security"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

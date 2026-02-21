@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/tdm" },
+    { "path": "packages/core" },
+    { "path": "packages/languages/python" },
+    { "path": "packages/languages/javascript" },
+    { "path": "packages/watcher" },
+    { "path": "packages/analyzer" },
+    { "path": "packages/notifier" },
+    { "path": "apps/cli" },
+    { "path": "apps/api" },
+    { "path": "apps/worker" },
+    { "path": "action" }
+  ]
+}

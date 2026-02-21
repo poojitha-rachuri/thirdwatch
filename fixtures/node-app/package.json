@@ -1,0 +1,16 @@
+{
+  "name": "node-app-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "openai": "^4.24.0",
+    "stripe": "^14.0.0",
+    "axios": "^1.6.0",
+    "pg": "^8.11.0",
+    "redis": "^4.6.0",
+    "@aws-sdk/client-s3": "^3.500.0",
+    "@aws-sdk/client-sqs": "^3.500.0",
+    "twilio": "^5.0.0",
+    "@slack/web-api": "^7.0.0"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@thirdwatch/core",
+  "version": "0.1.0",
+  "description": "Thirdwatch scanner engine — tree-sitter orchestration and plugin interface",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@thirdwatch/tdm": "workspace:*",
+    "fast-glob": "^3.3.2",
+    "ignore": "^5.3.0",
+    "js-yaml": "^4.1.0",
+    "piscina": "^4.6.0",
+    "simple-git": "^3.27.0",
+    "web-tree-sitter": "^0.23.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,6 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/languages/*"
+  - "plugins/*"
+  - "action"

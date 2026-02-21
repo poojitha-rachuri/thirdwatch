@@ -1,0 +1,40 @@
+name: "Thirdwatch"
+description: "Scan your codebase for external API and SDK dependencies, produce a TDM, and optionally fail the build on new dependencies."
+author: "Thirdwatch"
+
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  path:
+    description: "Path to scan (relative to workspace root)"
+    required: false
+    default: "."
+  output:
+    description: "Output format: json | yaml | table"
+    required: false
+    default: "json"
+  out-file:
+    description: "Output file path for TDM"
+    required: false
+    default: "thirdwatch.tdm.json"
+  fail-on-new:
+    description: "Fail the build if new external dependencies are detected vs. the baseline"
+    required: false
+    default: "false"
+  api-key:
+    description: "Thirdwatch cloud API key (required for Watcher integration)"
+    required: false
+
+outputs:
+  tdm-path:
+    description: "Path to the generated TDM file"
+  dependency-count:
+    description: "Total number of external dependencies detected"
+  new-dependency-count:
+    description: "Number of new dependencies vs. baseline (0 if no baseline)"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

@@ -1,0 +1,27 @@
+provider: cloudflare
+display_name: "Cloudflare"
+homepage: "https://cloudflare.com"
+changelog_url: "https://developers.cloudflare.com/changelog/"
+
+patterns:
+  npm:
+    - package: "cloudflare"
+      import_patterns:
+        - "cloudflare"
+        - "Cloudflare"
+    - package: "@cloudflare/workers-types"
+      import_patterns:
+        - "@cloudflare/workers-types"
+    - package: "wrangler"
+      import_patterns:
+        - "wrangler"
+
+known_api_base_urls:
+  - "https://api.cloudflare.com"
+
+env_var_patterns:
+  - "CLOUDFLARE_API_TOKEN"
+  - "CLOUDFLARE_API_KEY"
+  - "CLOUDFLARE_EMAIL"
+  - "CLOUDFLARE_ACCOUNT_ID"
+  - "CF_API_TOKEN"

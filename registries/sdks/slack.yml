@@ -1,0 +1,36 @@
+provider: slack
+display_name: "Slack"
+homepage: "https://slack.com"
+changelog_url: "https://api.slack.com/changelog"
+
+patterns:
+  npm:
+    - package: "@slack/web-api"
+      import_patterns:
+        - "@slack/web-api"
+        - "WebClient"
+    - package: "@slack/bolt"
+      import_patterns:
+        - "@slack/bolt"
+        - "App"
+    - package: "@slack/webhook"
+      import_patterns:
+        - "@slack/webhook"
+        - "IncomingWebhook"
+  pypi:
+    - package: "slack-sdk"
+      import_patterns:
+        - "from slack_sdk"
+        - "import slack_sdk"
+        - "WebClient"
+        - "WebhookClient"
+
+known_api_base_urls:
+  - "https://slack.com/api"
+  - "https://hooks.slack.com/services"
+
+env_var_patterns:
+  - "SLACK_BOT_TOKEN"
+  - "SLACK_APP_TOKEN"
+  - "SLACK_SIGNING_SECRET"
+  - "SLACK_WEBHOOK_URL"

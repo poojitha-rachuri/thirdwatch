@@ -1,0 +1,25 @@
+provider: anthropic
+display_name: "Anthropic"
+homepage: "https://anthropic.com"
+changelog_url: "https://docs.anthropic.com/en/release-notes/api"
+
+patterns:
+  npm:
+    - package: "@anthropic-ai/sdk"
+      import_patterns:
+        - "@anthropic-ai/sdk"
+        - "Anthropic"
+  pypi:
+    - package: "anthropic"
+      import_patterns:
+        - "import anthropic"
+        - "from anthropic"
+        - "Anthropic"
+        - "AsyncAnthropic"
+
+known_api_base_urls:
+  - "https://api.anthropic.com"
+
+env_var_patterns:
+  - "ANTHROPIC_API_KEY"
+  - "ANTHROPIC_BASE_URL"
