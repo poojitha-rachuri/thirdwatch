@@ -1,22 +1,33 @@
 // apps/cli/src/commands/scan.ts — `thirdwatch scan` command handler
 import { Command } from "commander";
-import { resolve } from "node:path";
+import { resolve, sep } from "node:path";
 import { writeFile } from "node:fs/promises";
 import { scan } from "@thirdwatch/core";
 import { PythonPlugin } from "@thirdwatch/language-python";
 import { JavaScriptPlugin } from "@thirdwatch/language-javascript";
-import yaml from "js-yaml";
 import { createSpinner } from "../ui/spinner.js";
 import { printSummaryTable } from "../output/summary.js";
 import { formatJson } from "../output/json.js";
 import { formatYaml } from "../output/yaml.js";
+
+interface ScanCommandOpts {
+  output: string;
+  format: string;
+  languages?: string[];
+  ignore?: string[];
+  config?: string;
+  resolve: boolean;
+  verbose?: boolean;
+  quiet?: boolean;
+  color: boolean;
+}
 
 export const scanCommand = new Command("scan")
   .description(
     "Scan a codebase and produce a Thirdwatch Dependency Manifest (TDM).",
   )
   .argument("[path]", "Path to scan (default: current directory)", ".")
-  .option("-o, --output <file>", "Output file path", "./thirdwatch.json")
+  .option("-o, --output <file>", "Output file path (use - for stdout)", "./thirdwatch.json")
   .option("-f, --format <format>", "Output format: json or yaml", "json")
   .option("--languages <langs...>", "Languages to scan (default: auto-detect)")
   .option("--ignore <patterns...>", "Glob patterns to ignore")
@@ -24,12 +35,13 @@ export const scanCommand = new Command("scan")
   .option("--no-resolve", "Skip environment variable resolution")
   .option("--verbose", "Print detailed logs")
   .option("--quiet", "Suppress all output except the TDM")
-  .action(async (scanPath: string, opts) => {
-    const quiet = opts.quiet as boolean;
-    const verbose = opts.verbose as boolean;
-    const format = opts.format as string;
-    const outputPath = resolve(opts.output as string);
+  .option("--no-color", "Disable colored output")
+  .action(async (scanPath: string, opts: ScanCommandOpts) => {
+    const quiet = opts.quiet ?? false;
+    const verbose = opts.verbose ?? false;
+    const format = opts.format;
     const root = resolve(scanPath);
+    const writeToStdout = opts.output === "-";
 
     if (format !== "json" && format !== "yaml") {
       console.error(`Error: Invalid format "${format}". Use "json" or "yaml".`);
@@ -37,33 +49,44 @@ export const scanCommand = new Command("scan")
       return;
     }
 
+    // Validate output path is within cwd (unless writing to stdout)
+    let outputPath = "";
+    if (!writeToStdout) {
+      outputPath = resolve(opts.output);
+      const basePath = resolve(process.cwd());
+      if (!outputPath.startsWith(basePath + sep) && outputPath !== basePath) {
+        console.error(
+          "Error: Output path must be within the current working directory.",
+        );
+        process.exitCode = 2;
+        return;
+      }
+    }
+
     const s = createSpinner();
     if (!quiet) s.start("Discovering files…");
 
     // Build plugin list — filter by --languages if provided
     const allPlugins = [new PythonPlugin(), new JavaScriptPlugin()];
-    const languages = opts.languages as string[] | undefined;
     const plugins =
-      languages && languages.length > 0
-        ? allPlugins.filter((p) => languages.includes(p.language))
+      opts.languages && opts.languages.length > 0
+        ? allPlugins.filter((p) => opts.languages!.includes(p.language))
         : allPlugins;
 
     if (plugins.length === 0) {
-      if (!quiet) s.fail("No matching language plugins found");
+      s.fail("No matching language plugins found");
       process.exitCode = 2;
       return;
     }
 
     try {
-      const ignorePatterns = opts.ignore as string[] | undefined;
-      const configFile = opts.config as string | undefined;
       const scanOpts: Parameters<typeof scan>[0] = {
         root,
         plugins,
         resolveEnv: opts.resolve !== false,
       };
-      if (ignorePatterns) scanOpts.ignore = ignorePatterns;
-      if (configFile) scanOpts.configFile = configFile;
+      if (opts.ignore) scanOpts.ignore = opts.ignore;
+      if (opts.config) scanOpts.configFile = opts.config;
 
       const result = await scan(scanOpts);
 
@@ -82,24 +105,26 @@ export const scanCommand = new Command("scan")
       // Format output
       const output = format === "yaml" ? formatYaml(tdm) : formatJson(tdm);
 
-      // Write output file
-      await writeFile(outputPath, output, "utf8");
-
-      if (!quiet) {
-        printSummaryTable(tdm, result.filesScanned);
-        console.log(`\n✓ TDM written to ${outputPath}`);
-      } else {
+      if (writeToStdout) {
         process.stdout.write(output);
+      } else {
+        await writeFile(outputPath, output, "utf8");
+
+        if (!quiet) {
+          printSummaryTable(tdm, result.filesScanned);
+          console.log(`\n✓ TDM written to ${outputPath}`);
+        } else {
+          process.stdout.write(output);
+        }
       }
 
       process.exitCode = 0;
     } catch (err) {
-      if (!quiet) {
-        s.fail("Scan failed");
-        console.error(
-          `\n${err instanceof Error ? err.message : String(err)}`,
-        );
-      }
+      if (!quiet) s.fail("Scan failed");
+      // Always write errors to stderr regardless of --quiet
+      console.error(
+        `\n${err instanceof Error ? err.message : String(err)}`,
+      );
       process.exitCode = 1;
     }
   });

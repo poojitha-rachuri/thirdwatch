@@ -7,9 +7,15 @@ import { scanCommand } from "./commands/scan.js";
 import { checkForUpdates } from "./update-check.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const { version } = JSON.parse(
-  readFileSync(join(__dirname, "../package.json"), "utf8"),
-) as { version: string };
+let version = "0.0.0";
+try {
+  const pkg = JSON.parse(
+    readFileSync(join(__dirname, "../package.json"), "utf8"),
+  ) as { version?: string };
+  if (pkg.version) version = pkg.version;
+} catch {
+  // Fall back to "0.0.0" if package.json is unreadable
+}
 
 const program = new Command();
 

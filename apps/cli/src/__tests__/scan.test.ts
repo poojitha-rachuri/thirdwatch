@@ -1,19 +1,26 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
 import { readFileSync, unlinkSync, existsSync } from "node:fs";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 import type { TDM } from "@thirdwatch/tdm";
 
-const CLI = resolve(__dirname, "../../bin/thirdwatch.js");
-const FIXTURES = resolve(__dirname, "../../../..", "fixtures");
+const __testdir = dirname(fileURLToPath(import.meta.url));
+const CLI = resolve(__testdir, "../../bin/thirdwatch.js");
+const ROOT = resolve(__testdir, "../../../..");
+const FIXTURES = join(ROOT, "fixtures");
 
-function run(args: string[]): { stdout: string; stderr: string; exitCode: number } {
+function run(
+  args: string[],
+  cwd?: string,
+): { stdout: string; stderr: string; exitCode: number } {
   try {
     const stdout = execFileSync("node", [CLI, ...args], {
       encoding: "utf8",
       timeout: 30_000,
-      cwd: resolve(__dirname, "../../../.."),
+      cwd: cwd ?? ROOT,
+      env: { ...process.env, NO_UPDATE_NOTIFICATION: "1" },
     });
     return { stdout, stderr: "", exitCode: 0 };
   } catch (err) {
@@ -51,12 +58,13 @@ describe("thirdwatch CLI", () => {
     expect(stdout).toContain("--ignore");
     expect(stdout).toContain("--config");
     expect(stdout).toContain("--no-resolve");
+    expect(stdout).toContain("--no-color");
   });
 });
 
 describe("thirdwatch scan", () => {
-  const outputPath = resolve("/tmp/thirdwatch-test-output.json");
-  const yamlOutputPath = resolve("/tmp/thirdwatch-test-output.yaml");
+  const outputPath = resolve(ROOT, "thirdwatch-test-output.json");
+  const yamlOutputPath = resolve(ROOT, "thirdwatch-test-output.yaml");
 
   afterEach(() => {
     for (const p of [outputPath, yamlOutputPath]) {
@@ -95,7 +103,7 @@ describe("thirdwatch scan", () => {
     expect(tdm.packages.length).toBeGreaterThan(0);
   });
 
-  it("supports --format yaml", () => {
+  it("supports --format yaml with trailing newline", () => {
     const { exitCode } = run([
       "scan",
       join(FIXTURES, "python-app"),
@@ -107,6 +115,7 @@ describe("thirdwatch scan", () => {
     expect(exitCode).toBe(0);
 
     const raw = readFileSync(yamlOutputPath, "utf8");
+    expect(raw.endsWith("\n")).toBe(true);
     const tdm = yaml.load(raw) as TDM;
     expect(tdm.version).toBe("1.0");
     expect(tdm.metadata.total_dependencies_found).toBeGreaterThan(0);
@@ -141,7 +150,7 @@ describe("thirdwatch scan", () => {
   });
 
   it("exits with code 2 on invalid format", () => {
-    const { exitCode, stderr } = run([
+    const { exitCode } = run([
       "scan",
       join(FIXTURES, "python-app"),
       "--format",
@@ -150,5 +159,30 @@ describe("thirdwatch scan", () => {
       outputPath,
     ]);
     expect(exitCode).toBe(2);
+  });
+
+  it("-o - writes TDM to stdout only (no file)", () => {
+    const { stdout, exitCode } = run([
+      "scan",
+      join(FIXTURES, "python-app"),
+      "-o",
+      "-",
+    ]);
+    expect(exitCode).toBe(0);
+
+    const tdm = JSON.parse(stdout) as TDM;
+    expect(tdm.version).toBe("1.0");
+    expect(tdm.metadata.total_dependencies_found).toBeGreaterThan(0);
+  });
+
+  it("rejects output path outside cwd", () => {
+    const { exitCode, stderr } = run([
+      "scan",
+      join(FIXTURES, "python-app"),
+      "--output",
+      "/tmp/evil-output.json",
+    ]);
+    expect(exitCode).toBe(2);
+    expect(stderr).toContain("Output path must be within");
   });
 });

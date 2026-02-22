@@ -10,6 +10,10 @@ function confidenceDot(confidence: Confidence): string {
       return pc.yellow("●");
     case "low":
       return pc.red("●");
+    default: {
+      const _exhaustive: never = confidence;
+      return pc.gray("●");
+    }
   }
 }
 

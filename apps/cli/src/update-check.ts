@@ -4,6 +4,15 @@ import pc from "picocolors";
 export async function checkForUpdates(
   currentVersion: string,
 ): Promise<void> {
+  // Skip in non-TTY (piping), CI, or when explicitly suppressed
+  if (
+    !process.stderr.isTTY ||
+    process.env["CI"] ||
+    process.env["NO_UPDATE_NOTIFICATION"]
+  ) {
+    return;
+  }
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
@@ -20,7 +29,8 @@ export async function checkForUpdates(
     const latest = data.version;
     if (!latest || latest === currentVersion) return;
 
-    console.log(
+    // Write to stderr so stdout stays clean for piping
+    console.error(
       pc.yellow(
         `\n  Update available: ${currentVersion} → ${latest}  (npm i -g thirdwatch)`,
       ),
