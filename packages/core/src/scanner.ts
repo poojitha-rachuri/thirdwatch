@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { basename, extname, relative } from "node:path";
-import { glob } from "fast-glob";
+import fg from "fast-glob";
 import type { TDM } from "@thirdwatch/tdm";
 import type { LanguageAnalyzerPlugin, DependencyEntry } from "./plugin.js";
 import { buildTDM } from "./build-tdm.js";
@@ -131,7 +131,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   }
 
   // Discover all files
-  const allFiles = await glob("**/*", {
+  const allFiles = await fg.glob("**/*", {
     cwd: root,
     absolute: true,
     dot: false,

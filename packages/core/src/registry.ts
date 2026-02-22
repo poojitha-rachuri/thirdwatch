@@ -1,4 +1,4 @@
-import { glob } from "fast-glob";
+import fg from "fast-glob";
 import { readFile } from "node:fs/promises";
 import * as yaml from "js-yaml";
 
@@ -33,7 +33,7 @@ function isValidRegistryEntry(value: unknown): value is SDKRegistryEntry {
 export async function loadSDKRegistry(
   registriesDir: string,
 ): Promise<SDKRegistryEntry[]> {
-  const files = await glob("sdks/*.yml", {
+  const files = await fg.glob("sdks/*.yml", {
     cwd: registriesDir,
     absolute: true,
   });
