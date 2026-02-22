@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GITHUB_SCHEMA_JSON_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "TDM Specification — Thirdwatch",
@@ -181,7 +182,7 @@ export default function TDMSpecPage() {
         <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
           The canonical JSON Schema is available at{" "}
           <a
-            href="https://github.com/poojitha-rachuri/thirdwatch/blob/main/schema/v1/tdm.schema.json"
+            href={GITHUB_SCHEMA_JSON_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand-400 hover:text-brand-300 underline"

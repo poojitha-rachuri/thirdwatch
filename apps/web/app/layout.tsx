@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
+import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,9 +14,8 @@ export const metadata: Metadata = {
     title: "Thirdwatch — Know Before You Break",
     description:
       "Continuous monitoring for every external dependency in your codebase.",
-    url: "https://thirdwatch.dev",
+    url: SITE_URL,
     siteName: "Thirdwatch",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     description:
       "Continuous monitoring for every external dependency in your codebase.",
   },
-  metadataBase: new URL("https://thirdwatch.dev"),
+  metadataBase: new URL(SITE_URL),
 };
 
 export default function RootLayout({
@@ -35,6 +35,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+        >
+          Skip to main content
+        </a>
         <Nav />
         {children}
         <Footer />

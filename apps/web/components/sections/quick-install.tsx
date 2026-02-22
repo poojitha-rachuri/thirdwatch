@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import { CopyButton } from "@/components/ui/copy-button";
+import { INSTALL_OPTIONS } from "@/lib/constants";
 
-const INSTALL_OPTIONS = [
-  { id: "npm", label: "npm", command: "npm install -g thirdwatch" },
-  { id: "brew", label: "brew", command: "brew install thirdwatch/tap/thirdwatch" },
-  { id: "pip", label: "pip", command: "pip install thirdwatch" },
-] as const;
+type InstallOptionId = (typeof INSTALL_OPTIONS)[number]["id"];
 
 export function QuickInstallSection() {
-  const [selected, setSelected] = useState<string>("npm");
+  const [selected, setSelected] = useState<InstallOptionId>("npm");
 
   const active = INSTALL_OPTIONS.find((o) => o.id === selected) ?? INSTALL_OPTIONS[0];
 
@@ -24,10 +21,19 @@ export function QuickInstallSection() {
 
         <div className="mt-10 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
           {/* Package manager tabs */}
-          <div className="flex border-b border-zinc-800">
+          <div
+            role="tablist"
+            aria-label="Install options"
+            className="flex border-b border-zinc-800"
+          >
             {INSTALL_OPTIONS.map((opt) => (
               <button
                 key={opt.id}
+                role="tab"
+                aria-selected={selected === opt.id}
+                aria-controls="install-command-panel"
+                id={`tab-${opt.id}`}
+                tabIndex={selected === opt.id ? 0 : -1}
                 onClick={() => setSelected(opt.id)}
                 className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
                   selected === opt.id
@@ -41,7 +47,12 @@ export function QuickInstallSection() {
           </div>
 
           {/* Command */}
-          <div className="flex items-center justify-between gap-2 p-4">
+          <div
+            id="install-command-panel"
+            role="tabpanel"
+            aria-labelledby={`tab-${selected}`}
+            className="flex items-center justify-between gap-2 p-4"
+          >
             <code className="font-mono text-sm text-green-400">
               $ {active.command}
             </code>

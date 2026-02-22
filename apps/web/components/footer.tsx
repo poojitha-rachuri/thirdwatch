@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GITHUB_REPO_URL } from "@/lib/constants";
 
 export function Footer() {
   return (
@@ -15,7 +16,7 @@ export function Footer() {
               Docs
             </Link>
             <a
-              href="https://github.com/poojitha-rachuri/thirdwatch"
+              href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-zinc-300 transition-colors"
