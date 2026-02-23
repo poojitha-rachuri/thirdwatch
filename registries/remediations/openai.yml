@@ -1,0 +1,13 @@
+provider: openai
+remediations:
+  - match:
+      change_type: breaking
+      affected_parameter: "engine"
+      affected_endpoint: "/v1/completions"
+    suggestion:
+      type: rename-parameter
+      description: "The `engine` parameter was removed. Use `model` instead."
+      suggested_diff: |
+        - openai.Completion.create(engine="davinci", prompt=prompt)
+        + openai.Completion.create(model="gpt-3.5-turbo", prompt=prompt)
+      migration_guide_url: "https://platform.openai.com/docs/guides/text-generation"
