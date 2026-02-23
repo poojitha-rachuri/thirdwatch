@@ -40,19 +40,15 @@ function simpleGlobMatch(pattern: string, value: string): boolean {
 function matchesRule(
   assessment: ImpactAssessment,
   rule: SuppressionRule,
-  changeCategory?: string,
-  dependencyIdentifier?: string,
 ): boolean {
   // Dependency glob match
-  if (rule.dependency !== undefined && dependencyIdentifier !== undefined) {
-    if (!simpleGlobMatch(rule.dependency, dependencyIdentifier)) return false;
-  } else if (rule.dependency !== undefined) {
-    return false;
+  if (rule.dependency !== undefined) {
+    if (!simpleGlobMatch(rule.dependency, assessment.dependencyIdentifier)) return false;
   }
 
   // Change category match
   if (rule.change_category !== undefined) {
-    if (changeCategory !== rule.change_category) return false;
+    if (assessment.changeCategory !== rule.change_category) return false;
   }
 
   // Min priority: suppress if assessment priority is lower than threshold
@@ -82,11 +78,9 @@ function matchesRule(
 export function shouldSuppress(
   assessment: ImpactAssessment,
   rules: SuppressionRule[],
-  changeCategory?: string,
-  dependencyIdentifier?: string,
 ): { suppressed: boolean; rule?: SuppressionRule } {
   for (const rule of rules) {
-    if (matchesRule(assessment, rule, changeCategory, dependencyIdentifier)) {
+    if (matchesRule(assessment, rule)) {
       return { suppressed: true, rule };
     }
   }

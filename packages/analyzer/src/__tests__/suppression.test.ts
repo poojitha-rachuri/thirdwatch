@@ -9,6 +9,8 @@ import { shouldSuppress } from "../suppression.js";
 function makeAssessment(overrides: Partial<ImpactAssessment> = {}): ImpactAssessment {
   return {
     changeEventId: "evt-1",
+    dependencyIdentifier: "stripe",
+    changeCategory: "breaking",
     priority: "P1",
     score: 20,
     affectedLocations: [
@@ -32,27 +34,33 @@ describe("shouldSuppress", () => {
   });
 
   it("suppresses by dependency glob", () => {
-    const assessment = makeAssessment();
     const rules: SuppressionRule[] = [
       { dependency: "eslint*", reason: "Dev tooling only" },
     ];
 
     // eslint doesn't match stripe
-    expect(shouldSuppress(assessment, rules, "breaking", "stripe").suppressed).toBe(false);
+    expect(shouldSuppress(makeAssessment(), rules).suppressed).toBe(false);
 
     // eslint matches eslint
-    expect(shouldSuppress(assessment, rules, "breaking", "eslint").suppressed).toBe(true);
+    expect(
+      shouldSuppress(makeAssessment({ dependencyIdentifier: "eslint" }), rules).suppressed,
+    ).toBe(true);
 
     // eslint* matches eslint-plugin-foo
-    expect(shouldSuppress(assessment, rules, "breaking", "eslint-plugin-foo").suppressed).toBe(true);
+    expect(
+      shouldSuppress(makeAssessment({ dependencyIdentifier: "eslint-plugin-foo" }), rules).suppressed,
+    ).toBe(true);
   });
 
   it("suppresses by change category", () => {
-    const assessment = makeAssessment();
     const rules: SuppressionRule[] = [{ change_category: "patch" }];
 
-    expect(shouldSuppress(assessment, rules, "patch").suppressed).toBe(true);
-    expect(shouldSuppress(assessment, rules, "breaking").suppressed).toBe(false);
+    expect(
+      shouldSuppress(makeAssessment({ changeCategory: "patch" }), rules).suppressed,
+    ).toBe(true);
+    expect(
+      shouldSuppress(makeAssessment({ changeCategory: "breaking" }), rules).suppressed,
+    ).toBe(false);
   });
 
   it("suppresses by min_priority (lower priorities are suppressed)", () => {
@@ -98,7 +106,10 @@ describe("shouldSuppress", () => {
       { dependency: "eslint", reason: "Dev tooling only" },
     ];
 
-    const result = shouldSuppress(makeAssessment(), rules, "breaking", "eslint");
+    const result = shouldSuppress(
+      makeAssessment({ dependencyIdentifier: "eslint" }),
+      rules,
+    );
     expect(result.suppressed).toBe(true);
     expect(result.rule?.reason).toBe("Dev tooling only");
   });
@@ -109,15 +120,15 @@ describe("shouldSuppress", () => {
     ];
 
     // Matches category AND min_priority → suppressed
-    const p4Minor = makeAssessment({ priority: "P4" });
-    expect(shouldSuppress(p4Minor, rules, "minor-update").suppressed).toBe(true);
+    const p4Minor = makeAssessment({ priority: "P4", changeCategory: "minor-update" });
+    expect(shouldSuppress(p4Minor, rules).suppressed).toBe(true);
 
     // Matches category but NOT min_priority → not suppressed
-    const p1Minor = makeAssessment({ priority: "P1" });
-    expect(shouldSuppress(p1Minor, rules, "minor-update").suppressed).toBe(false);
+    const p1Minor = makeAssessment({ priority: "P1", changeCategory: "minor-update" });
+    expect(shouldSuppress(p1Minor, rules).suppressed).toBe(false);
 
     // Matches min_priority but NOT category → not suppressed
-    const p4Breaking = makeAssessment({ priority: "P4" });
-    expect(shouldSuppress(p4Breaking, rules, "breaking").suppressed).toBe(false);
+    const p4Breaking = makeAssessment({ priority: "P4", changeCategory: "breaking" });
+    expect(shouldSuppress(p4Breaking, rules).suppressed).toBe(false);
   });
 });

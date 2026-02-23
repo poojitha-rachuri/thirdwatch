@@ -39,9 +39,10 @@ export function findTDMEntries(
 ): TDMEntry[] {
   const entries: TDMEntry[] = [];
   const id = dependency.identifier.toLowerCase();
+  const tdmId = dependency.tdmId?.toLowerCase() ?? "";
 
   for (const pkg of tdm.packages) {
-    if (pkg.name.toLowerCase() === id || pkg.id?.toLowerCase() === dependency.tdmId.toLowerCase()) {
+    if (pkg.name.toLowerCase() === id || (tdmId && pkg.id?.toLowerCase() === tdmId)) {
       entries.push({ usage_count: pkg.usage_count, locations: pkg.locations });
     }
   }
@@ -50,7 +51,7 @@ export function findTDMEntries(
     if (
       sdk.provider.toLowerCase() === id ||
       sdk.sdk_package.toLowerCase() === id ||
-      sdk.id?.toLowerCase() === dependency.tdmId.toLowerCase()
+      (tdmId && sdk.id?.toLowerCase() === tdmId)
     ) {
       entries.push({ usage_count: sdk.usage_count, locations: sdk.locations });
     }
@@ -59,7 +60,7 @@ export function findTDMEntries(
   for (const api of tdm.apis) {
     if (
       api.provider?.toLowerCase() === id ||
-      api.id?.toLowerCase() === dependency.tdmId.toLowerCase()
+      (tdmId && api.id?.toLowerCase() === tdmId)
     ) {
       entries.push({ usage_count: api.usage_count, locations: api.locations });
     }

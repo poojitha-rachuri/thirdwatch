@@ -27,3 +27,5 @@ export {
 export type { RegistryProvider, RegistryRemediationEntry } from "./remediation.js";
 
 export { shouldSuppress } from "./suppression.js";
+
+export { loadRemediationRegistries } from "./load-registries.js";

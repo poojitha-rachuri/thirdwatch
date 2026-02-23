@@ -1,4 +1,5 @@
 ALTER TABLE change_events
+  ADD COLUMN priority TEXT,
   ADD COLUMN impact_score FLOAT,
   ADD COLUMN human_summary TEXT,
   ADD COLUMN suppressed BOOLEAN DEFAULT false,

@@ -6,6 +6,10 @@ import type { ChangeCategory, Priority } from "@thirdwatch/tdm";
 
 export interface ImpactAssessment {
   changeEventId: string;
+  /** The dependency identifier, e.g. "stripe" */
+  dependencyIdentifier: string;
+  /** The change category that triggered this assessment */
+  changeCategory: ChangeCategory;
   priority: Priority;
   /** Raw computed score (for debugging) */
   score: number;
