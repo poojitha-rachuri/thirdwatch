@@ -16,9 +16,6 @@ export function Nav() {
           <Link href="/docs" className="text-zinc-400 hover:text-white transition-colors">
             Docs
           </Link>
-          <Link href="/tdm-spec" className="text-zinc-400 hover:text-white transition-colors">
-            TDM Spec
-          </Link>
           <a
             href={GITHUB_REPO_URL}
             target="_blank"
