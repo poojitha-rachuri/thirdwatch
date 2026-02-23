@@ -1,0 +1,14 @@
+provider: stripe
+remediations:
+  - match:
+      change_type: breaking
+      version_range: ">=2023-10-16"
+      affected_parameter: "source"
+      affected_endpoint: "/v1/charges"
+    suggestion:
+      type: rename-parameter
+      description: "The `source` parameter was removed. Use `payment_method` instead."
+      suggested_diff: |
+        - stripe.Charge.create(amount=amount, currency="usd", source=token)
+        + stripe.PaymentIntent.create(amount=amount, currency="usd", payment_method=token)
+      migration_guide_url: "https://stripe.com/docs/upgrades#2023-10-16"

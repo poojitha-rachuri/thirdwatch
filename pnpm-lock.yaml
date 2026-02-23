@@ -181,6 +181,9 @@ importers:
       '@thirdwatch/tdm':
         specifier: workspace:*
         version: link:../tdm
+      '@thirdwatch/watcher':
+        specifier: workspace:*
+        version: link:../watcher
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

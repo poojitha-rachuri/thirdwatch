@@ -15,7 +15,8 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@thirdwatch/tdm": "workspace:*"
+    "@thirdwatch/tdm": "workspace:*",
+    "@thirdwatch/watcher": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
