@@ -1,0 +1,13 @@
+## stripe-node v14.8.1 — 2024-01-10
+
+### Bug fixes
+
+- Fixed an issue where `StripeClient.webhooks.constructEvent` could throw
+  an unexpected error when the payload contained Unicode characters.
+- Fixed TypeScript type definitions for `PaymentIntent.confirm` options.
+- Corrected the return type for `Customer.listPaymentMethods`.
+
+### Internal
+
+- Updated HTTP client to retry on 429 responses with proper backoff.
+- Improved test coverage for webhook signature verification.

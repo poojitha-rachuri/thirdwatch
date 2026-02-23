@@ -1,0 +1,22 @@
+## 2023-10-16 — API Version 2023-10-16
+
+BREAKING CHANGE: The `source` parameter on the Create Customer API has been removed.
+
+### What changed
+
+- The `source` parameter is no longer accepted when creating or updating a Customer.
+  Use `payment_method` instead.
+- The `default_source` field on the Customer object has been removed.
+  Use `invoice_settings.default_payment_method` instead.
+- All integrations using `source` must migrate before 2024-01-01.
+
+### Migration guide
+
+1. Replace `source` with `payment_method` in all API calls
+2. Update webhook handlers to use the new `payment_method.attached` event
+3. Replace `default_source` reads with `invoice_settings.default_payment_method`
+
+### Other changes
+
+- Added support for `mandate_data` on PaymentIntent confirmation
+- Improved error messages for declined payments

@@ -4,7 +4,8 @@ import type { WatchedDependency, ChangeEvent, ETagCache } from "./types.js";
 import { NpmAdapter } from "./adapters/npm.js";
 import { PyPIAdapter } from "./adapters/pypi.js";
 import { GitHubAdapter } from "./adapters/github.js";
-import type { ChangeCategory } from "@thirdwatch/tdm";
+import { classifyChange } from "./classification/pipeline.js";
+import type { ClassificationConfig } from "./classification/types.js";
 
 function determineSemverType(
   oldVersion: string,
@@ -18,32 +19,23 @@ function determineSemverType(
   return "patch";
 }
 
-function changeTypeFromSemver(
-  semverType: "major" | "minor" | "patch" | undefined,
-): ChangeCategory {
-  switch (semverType) {
-    case "major":
-      return "breaking";
-    case "minor":
-      return "minor-update";
-    case "patch":
-      return "patch";
-    default:
-      return "informational";
-  }
-}
-
 export const DEFAULT_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 export class DependencyChecker {
   private readonly npmAdapter: NpmAdapter;
   private readonly pypiAdapter: PyPIAdapter;
   private readonly githubAdapter: GitHubAdapter;
+  private readonly classificationConfig: ClassificationConfig;
 
-  constructor(etagCache: ETagCache, githubToken?: string) {
+  constructor(
+    etagCache: ETagCache,
+    githubToken?: string,
+    classificationConfig?: ClassificationConfig,
+  ) {
     this.npmAdapter = new NpmAdapter(etagCache);
     this.pypiAdapter = new PyPIAdapter(etagCache);
     this.githubAdapter = new GitHubAdapter(githubToken, etagCache);
+    this.classificationConfig = classificationConfig ?? {};
   }
 
   async check(dependency: WatchedDependency): Promise<ChangeEvent[]> {
@@ -68,14 +60,22 @@ export class DependencyChecker {
     if (!lastSeen || result.version === lastSeen) return [];
 
     const svType = determineSemverType(lastSeen, result.version);
-    const changeType = changeTypeFromSemver(svType);
+
+    const classification = await classifyChange(
+      {
+        dependency: dep,
+        previousVersion: lastSeen,
+        newVersion: result.version,
+      },
+      this.classificationConfig,
+    );
 
     return [
       {
         id: randomUUID(),
         dependency: dep,
         detectedAt: new Date(),
-        changeType,
+        changeType: classification.category,
         previousVersion: lastSeen,
         newVersion: result.version,
         title: `${dep.identifier} ${lastSeen} → ${result.version}`,
@@ -101,20 +101,29 @@ export class DependencyChecker {
     const svType = lastSeen
       ? determineSemverType(lastSeen, tag)
       : undefined;
-    const changeType = svType
-      ? changeTypeFromSemver(svType)
-      : "informational";
+
+    const changelogText = release.body || undefined;
+
+    const classification = await classifyChange(
+      {
+        dependency: dep,
+        previousVersion: lastSeen,
+        newVersion: tag,
+        changelogText,
+      },
+      this.classificationConfig,
+    );
 
     return [
       {
         id: randomUUID(),
         dependency: dep,
         detectedAt: new Date(),
-        changeType,
+        changeType: classification.category,
         previousVersion: lastSeen,
         newVersion: tag,
         title: release.name || `${dep.identifier} ${tag}`,
-        body: release.body || undefined,
+        body: changelogText,
         url: release.htmlUrl,
         semverType: svType,
         rawData: {

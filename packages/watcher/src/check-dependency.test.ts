@@ -29,7 +29,7 @@ function pypiResponse(version: string) {
   };
 }
 
-function githubRelease(tag: string) {
+function githubRelease(tag: string, body = "changelog") {
   return {
     ok: true,
     status: 200,
@@ -37,7 +37,7 @@ function githubRelease(tag: string) {
     json: async () => ({
       tag_name: tag,
       name: `Release ${tag}`,
-      body: "changelog",
+      body,
       published_at: "2026-01-15T00:00:00Z",
       html_url: `https://github.com/owner/repo/releases/tag/${tag}`,
       prerelease: false,
@@ -54,7 +54,7 @@ describe("DependencyChecker", () => {
     checker = new DependencyChecker(new InMemoryETagCache());
   });
 
-  it("detects npm version change", async () => {
+  it("detects npm major version change as major-update", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       npmResponse("5.0.0") as Response,
     );
@@ -72,7 +72,7 @@ describe("DependencyChecker", () => {
     expect(events[0]!.newVersion).toBe("5.0.0");
     expect(events[0]!.previousVersion).toBe("4.18.0");
     expect(events[0]!.semverType).toBe("major");
-    expect(events[0]!.changeType).toBe("breaking");
+    expect(events[0]!.changeType).toBe("major-update");
   });
 
   it("returns empty when npm version unchanged", async () => {
@@ -184,5 +184,42 @@ describe("DependencyChecker", () => {
     expect(events).toHaveLength(1);
     expect(events[0]!.semverType).toBe("patch");
     expect(events[0]!.changeType).toBe("patch");
+  });
+
+  it("classifies github release with breaking changelog as breaking", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      githubRelease("v3.0.0", "BREAKING CHANGE: removed legacy API") as Response,
+    );
+
+    const dep: WatchedDependency = {
+      tdmId: "tdm-1",
+      kind: "sdk",
+      identifier: "my-sdk",
+      githubRepo: "owner/my-sdk",
+      currentVersion: "2.0.0",
+    };
+
+    const events = await checker.check(dep);
+    expect(events).toHaveLength(1);
+    expect(events[0]!.changeType).toBe("breaking");
+    expect(events[0]!.body).toBe("BREAKING CHANGE: removed legacy API");
+  });
+
+  it("classifies github release with CVE as security", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      githubRelease("v1.0.1", "Fixed CVE-2025-9999 in auth module") as Response,
+    );
+
+    const dep: WatchedDependency = {
+      tdmId: "tdm-1",
+      kind: "sdk",
+      identifier: "auth-lib",
+      githubRepo: "owner/auth-lib",
+      currentVersion: "1.0.0",
+    };
+
+    const events = await checker.check(dep);
+    expect(events).toHaveLength(1);
+    expect(events[0]!.changeType).toBe("security");
   });
 });
