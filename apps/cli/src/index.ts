@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { scanCommand } from "./commands/scan.js";
+import { pushCommand } from "./commands/push.js";
 import { checkForUpdates } from "./update-check.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,6 +28,7 @@ program
   .version(version, "-v, --version");
 
 program.addCommand(scanCommand);
+program.addCommand(pushCommand);
 
 // Non-blocking update check (fire and forget)
 void checkForUpdates(version);
