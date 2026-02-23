@@ -1,0 +1,23 @@
+## Deprecation of text-davinci-003 and other legacy models
+
+We are announcing the deprecation of the following models:
+
+- `text-davinci-003`
+- `text-davinci-002`
+- `code-davinci-002`
+
+These models will be removed on January 4, 2024. After this date, API calls
+using these models will return an error.
+
+### Recommended migration path
+
+- For text generation: migrate to `gpt-3.5-turbo` or `gpt-4`
+- For code generation: migrate to `gpt-4` with system prompts optimized for code
+- For embeddings: migrate to `text-embedding-ada-002`
+
+### Timeline
+
+- **Now**: Models are deprecated. New fine-tunes using these models are no longer accepted.
+- **January 4, 2024**: Models will be shut down. All API calls will fail.
+
+Please update your integrations before the sunset date.
