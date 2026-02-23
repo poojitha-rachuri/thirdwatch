@@ -16,8 +16,6 @@ export {
   classifyChange,
   selectHighestSeverity,
   classifyBySemver,
-  classifyByKeywords,
-  classifyByOpenApiDiff,
   classifyByLLM,
   assignPreliminaryPriority,
 } from "./classification/index.js";

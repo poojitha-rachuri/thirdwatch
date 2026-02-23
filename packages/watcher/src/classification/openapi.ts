@@ -3,12 +3,17 @@ import type { ClassificationResult, OpenApiDiff } from "./types.js";
 export function classifyByOpenApiDiff(
   diff: OpenApiDiff,
 ): ClassificationResult {
-  if (
+  const removedSchemas = diff.changedSchemas.filter((s) => s.removedRequired);
+  const removedParams = diff.removedParameters.filter((p) => p.wasRequired);
+  const hasAddedOptional = diff.changedSchemas.some((s) => s.addedOptional);
+
+  const isBreaking =
     diff.removedPaths.length > 0 ||
     diff.changedAuth ||
-    diff.changedSchemas.some((s) => s.removedRequired) ||
-    diff.removedParameters.some((p) => p.wasRequired)
-  ) {
+    removedSchemas.length > 0 ||
+    removedParams.length > 0;
+
+  if (isBreaking) {
     const details: string[] = [];
     if (diff.removedPaths.length > 0) {
       details.push(`removed paths [${diff.removedPaths.join(", ")}]`);
@@ -16,13 +21,9 @@ export function classifyByOpenApiDiff(
     if (diff.changedAuth) {
       details.push("authentication changed");
     }
-    const removedSchemas = diff.changedSchemas.filter(
-      (s) => s.removedRequired,
-    );
     if (removedSchemas.length > 0) {
       details.push(`required fields removed in [${removedSchemas.map((s) => s.path).join(", ")}]`);
     }
-    const removedParams = diff.removedParameters.filter((p) => p.wasRequired);
     if (removedParams.length > 0) {
       details.push(`required parameters removed [${removedParams.map((p) => `${p.path}:${p.name}`).join(", ")}]`);
     }
@@ -35,10 +36,7 @@ export function classifyByOpenApiDiff(
     };
   }
 
-  if (
-    diff.addedPaths.length > 0 ||
-    diff.changedSchemas.some((s) => s.addedOptional)
-  ) {
+  if (diff.addedPaths.length > 0 || hasAddedOptional) {
     return {
       category: "minor-update",
       confidence: "high",

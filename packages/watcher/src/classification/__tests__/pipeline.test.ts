@@ -203,7 +203,7 @@ describe("classifyChange", () => {
   });
 
   it("LLM failure falls back to keyword result silently", async () => {
-    process.env["TEST_KEY"] = "test";
+    process.env["OPENAI_API_KEY"] = "test";
 
     vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(
       new Error("timeout"),
@@ -220,7 +220,7 @@ describe("classifyChange", () => {
           enabled: true,
           provider: "openai",
           model: "gpt-4o",
-          apiKeyEnv: "TEST_KEY",
+          apiKeyEnv: "OPENAI_API_KEY",
         },
       },
     );
@@ -228,6 +228,6 @@ describe("classifyChange", () => {
     // Breaking from keywords should still be the result
     expect(result.category).toBe("breaking");
 
-    delete process.env["TEST_KEY"];
+    delete process.env["OPENAI_API_KEY"];
   });
 });
