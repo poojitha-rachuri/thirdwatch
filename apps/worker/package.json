@@ -12,7 +12,9 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@thirdwatch/tdm": "workspace:*"
+    "@thirdwatch/tdm": "workspace:*",
+    "@thirdwatch/watcher": "workspace:*",
+    "bullmq": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
