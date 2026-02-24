@@ -26,14 +26,8 @@ inputs:
     description: "Fail the build if new external dependencies are detected"
     required: false
     default: "false"
-  fail-on-breaking-changes:
-    description: "Fail the build if known breaking changes affect files in this PR"
-    required: false
-    default: "true"
-  severity-threshold:
-    description: "Minimum change severity to fail on: P0, P1, P2, P3"
-    required: false
-    default: "P1"
+  # fail-on-breaking-changes and severity-threshold are deferred to Phase 2.
+  # They require the Watcher + Analyzer cloud pipeline to classify breaking changes.
   out-file:
     description: "Output file path for the TDM artifact"
     required: false

@@ -6,19 +6,12 @@ import { scan } from "@thirdwatch/core";
 import { PythonPlugin } from "@thirdwatch/language-python";
 import { JavaScriptPlugin } from "@thirdwatch/language-javascript";
 import { parseTDM } from "@thirdwatch/tdm";
-import type { TDM, Priority } from "@thirdwatch/tdm";
+import type { TDM } from "@thirdwatch/tdm";
 import { writeFile, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { diffTDMs, formatDiffAsMarkdown } from "./diff.js";
 import { downloadBaselineTDM, uploadTDM } from "./cloud.js";
 import { postPRComment } from "./github.js";
-
-const PRIORITY_ORDER: Priority[] = ["P0", "P1", "P2", "P3", "P4"];
-
-function priorityIndex(p: string): number {
-  const idx = PRIORITY_ORDER.indexOf(p as Priority);
-  return idx === -1 ? PRIORITY_ORDER.length : idx;
-}
 
 async function run(): Promise<void> {
   try {
@@ -26,10 +19,7 @@ async function run(): Promise<void> {
     const baselineInput = core.getInput("baseline-tdm") || "cloud";
     const token = core.getInput("token");
     const githubToken = core.getInput("github-token");
-    const failOnNew = core.getInput("fail-on-new-dependencies") === "true";
-    const failOnBreaking =
-      core.getInput("fail-on-breaking-changes") !== "false";
-    const severityThreshold = core.getInput("severity-threshold") || "P1";
+    const failOnNew = core.getBooleanInput("fail-on-new-dependencies");
     const outFile = core.getInput("out-file") || "thirdwatch.json";
 
     // 1. Scan
@@ -40,6 +30,8 @@ async function run(): Promise<void> {
       plugins: [new PythonPlugin(), new JavaScriptPlugin()],
     });
     const tdm = result.tdm;
+    // Inject repository from GitHub context for cloud scoping
+    tdm.metadata.repository = `${github.context.repo.owner}/${github.context.repo.repo}`;
     const durationMs = Date.now() - startMs;
     core.info(
       `Found ${tdm.metadata.total_dependencies_found} dependencies in ${durationMs}ms`,
@@ -144,14 +136,9 @@ async function run(): Promise<void> {
       return;
     }
 
-    if (failOnBreaking && diff.removed.length > 0) {
-      const threshold = priorityIndex(severityThreshold);
-      // Only fail if there are dependencies removed that exceed the severity threshold
-      // This is a simplified check — full breaking change detection requires the watcher
-      core.info(
-        `Breaking changes check: severity threshold ${severityThreshold} (index ${threshold})`,
-      );
-    }
+    // NOTE: fail-on-breaking-changes is deferred to Phase 2 — requires
+    // the Watcher + Analyzer cloud pipeline to classify breaking changes.
+    // See docs/plans/2026-02-21-11-feat-cicd-pipeline-gate-plan.md § Phase 11.5.
   } catch (error) {
     core.setFailed(error instanceof Error ? error.message : String(error));
   }
