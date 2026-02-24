@@ -290,6 +290,9 @@ importers:
 
   packages/notifier:
     dependencies:
+      '@thirdwatch/analyzer':
+        specifier: workspace:*
+        version: link:../analyzer
       '@thirdwatch/tdm':
         specifier: workspace:*
         version: link:../tdm
