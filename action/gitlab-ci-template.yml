@@ -1,0 +1,25 @@
+# Thirdwatch GitLab CI Template
+#
+# Include in your .gitlab-ci.yml:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/thirdwatch/thirdwatch/main/action/gitlab-ci-template.yml'
+#
+# Or copy this file to .gitlab/ci/thirdwatch.yml and include locally:
+#   include:
+#     - local: '.gitlab/ci/thirdwatch.yml'
+
+thirdwatch:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npm install -g thirdwatch
+    - thirdwatch scan . --output thirdwatch.json
+    - |
+      if [ -n "$THIRDWATCH_TOKEN" ]; then
+        thirdwatch push thirdwatch.json --token "$THIRDWATCH_TOKEN"
+      fi
+  artifacts:
+    paths:
+      - thirdwatch.json
+    when: always
+  allow_failure: true  # Change to false to make it a hard gate

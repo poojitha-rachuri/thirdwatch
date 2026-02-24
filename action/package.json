@@ -1,21 +1,26 @@
 {
   "name": "@thirdwatch/action",
   "version": "0.1.0",
-  "description": "GitHub Action for Thirdwatch",
+  "description": "GitHub Action — scan for external dependencies and gate PRs on new unmonitored dependencies",
   "private": true,
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && ncc build src/index.ts -o dist --license licenses.txt",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.0",
-    "thirdwatch": "workspace:*"
+    "@thirdwatch/core": "workspace:*",
+    "@thirdwatch/language-python": "workspace:*",
+    "@thirdwatch/language-javascript": "workspace:*",
+    "@thirdwatch/tdm": "workspace:*"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
   }
 }
