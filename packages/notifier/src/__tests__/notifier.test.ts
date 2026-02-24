@@ -4,11 +4,7 @@ import { Notifier } from "../notifier.js";
 import { resolveRoutes } from "../routing.js";
 import { InMemoryDeduplicationStore } from "../dedup.js";
 import { signPayload, WebhookAdapter } from "../adapters/webhook.js";
-import type {
-  NotifierConfig,
-  NotifierAdapter,
-  NotificationResult,
-} from "../types.js";
+import type { NotifierConfig } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -30,20 +26,6 @@ function makeAssessment(
       "stripe has a breaking change. Found 1 usage across 1 file.",
     ...overrides,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Stub adapter for testing
-// ---------------------------------------------------------------------------
-
-class StubAdapter implements NotifierAdapter {
-  calls: ImpactAssessment[] = [];
-  result: NotificationResult = { channelId: "stub", success: true };
-
-  async send(assessment: ImpactAssessment): Promise<NotificationResult> {
-    this.calls.push(assessment);
-    return this.result;
-  }
 }
 
 // ---------------------------------------------------------------------------
