@@ -1,0 +1,28 @@
+# Thirdwatch GitLab CI — Scan + Upload Integration
+#
+# This template scans your codebase for external dependencies and optionally
+# uploads the TDM to Thirdwatch cloud. For full diff + PR gating, use the
+# GitHub Action (action/).
+#
+# Include in your .gitlab-ci.yml:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/thirdwatch/thirdwatch/main/action/gitlab-ci-template.yml'
+#
+# Or copy this file to .gitlab/ci/thirdwatch.yml and include locally:
+#   include:
+#     - local: '.gitlab/ci/thirdwatch.yml'
+
+thirdwatch:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npx thirdwatch@latest scan . --output thirdwatch.json
+    - |
+      if [ -n "$THIRDWATCH_TOKEN" ]; then
+        npx thirdwatch@latest push thirdwatch.json --token "$THIRDWATCH_TOKEN"
+      fi
+  artifacts:
+    paths:
+      - thirdwatch.json
+    when: always
+  allow_failure: true  # Change to false to make it a hard gate

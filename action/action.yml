@@ -1,39 +1,51 @@
-name: "Thirdwatch"
-description: "Scan your codebase for external API and SDK dependencies, produce a TDM, and optionally fail the build on new dependencies."
+name: "Thirdwatch Dependency Gate"
+description: "Scan for external dependencies and detect new unmonitored dependencies in your PR."
 author: "Thirdwatch"
 
 branding:
-  icon: "eye"
-  color: "purple"
+  icon: eye
+  color: blue
 
 inputs:
   path:
-    description: "Path to scan (relative to workspace root)"
+    description: "Path to the repository to scan"
     required: false
     default: "."
-  output:
-    description: "Output format: json | yaml | table"
+  baseline-tdm:
+    description: "Path to a baseline TDM file, or 'cloud' to download from Thirdwatch cloud"
     required: false
-    default: "json"
-  out-file:
-    description: "Output file path for TDM"
+    default: "cloud"
+  token:
+    description: "Thirdwatch API token (required for cloud baseline)"
     required: false
-    default: "thirdwatch.tdm.json"
-  fail-on-new:
-    description: "Fail the build if new external dependencies are detected vs. the baseline"
+  github-token:
+    description: "GitHub token for posting PR comments"
+    required: false
+    default: ${{ github.token }}
+  fail-on-new-dependencies:
+    description: "Fail the build if new external dependencies are detected"
     required: false
     default: "false"
-  api-key:
-    description: "Thirdwatch cloud API key (required for Watcher integration)"
+  # fail-on-breaking-changes and severity-threshold are deferred to Phase 2.
+  # They require the Watcher + Analyzer cloud pipeline to classify breaking changes.
+  out-file:
+    description: "Output file path for the TDM artifact"
     required: false
+    default: "thirdwatch.json"
 
 outputs:
   tdm-path:
     description: "Path to the generated TDM file"
   dependency-count:
     description: "Total number of external dependencies detected"
+  new-dependencies:
+    description: "JSON array of newly discovered dependency keys"
+  removed-dependencies:
+    description: "JSON array of removed dependency keys"
   new-dependency-count:
     description: "Number of new dependencies vs. baseline (0 if no baseline)"
+  scan-duration-ms:
+    description: "Time taken to scan in milliseconds"
 
 runs:
   using: "node20"
