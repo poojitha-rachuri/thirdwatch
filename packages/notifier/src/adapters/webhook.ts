@@ -25,12 +25,14 @@ export interface WebhookPayload {
     priority: string;
     changeType: string;
     dependency: string;
+    /** Deferred until ImpactAssessment carries version data from Classifier */
     version: {
       from?: string | undefined;
       to?: string | undefined;
     };
     summary: string;
     affectedFiles: number;
+    url: string;
   };
 }
 
@@ -103,6 +105,7 @@ export class WebhookAdapter implements NotifierAdapter {
         affectedFiles: new Set(
           assessment.affectedLocations.map((l) => l.file),
         ).size,
+        url: `https://app.thirdwatch.dev/changes/${assessment.changeEventId}`,
       },
     };
   }

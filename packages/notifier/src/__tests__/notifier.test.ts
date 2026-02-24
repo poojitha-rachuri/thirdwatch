@@ -192,6 +192,7 @@ describe("WebhookAdapter", () => {
     expect(body.assessment.dependency).toBe("stripe");
     expect(body.assessment.changeType).toBe("breaking");
     expect(body.assessment.affectedFiles).toBe(1);
+    expect(body.assessment.url).toBe("https://app.thirdwatch.dev/changes/evt-1");
   });
 
   it("includes HMAC signature when secret is set", async () => {
