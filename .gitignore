@@ -34,9 +34,10 @@ pnpm-debug.log*
 # Turbo
 .turbo/
 
-# Changesets
-.changeset/*.md
+# Changesets - config and .md files are committed for the release workflow
+.changeset/
 !.changeset/config.json
+!.changeset/*.md
 
 # Docker
 docker/data/

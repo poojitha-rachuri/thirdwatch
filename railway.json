@@ -1,0 +1,10 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "pnpm install --frozen-lockfile && pnpm turbo run build --filter=@thirdwatch/web",
+    "watchPatterns": ["apps/web/**", "packages/**"]
+  },
+  "deploy": {
+    "startCommand": "pnpm --filter @thirdwatch/web start"
+  }
+}
