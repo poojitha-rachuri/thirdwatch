@@ -20,6 +20,7 @@
   "dependencies": {
     "@thirdwatch/core": "workspace:*",
     "@thirdwatch/language-go": "workspace:*",
+    "@thirdwatch/language-java": "workspace:*",
     "@thirdwatch/language-javascript": "workspace:*",
     "@thirdwatch/language-python": "workspace:*",
     "@thirdwatch/tdm": "workspace:*",

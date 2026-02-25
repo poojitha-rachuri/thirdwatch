@@ -28,6 +28,15 @@ patterns:
     - package: "github.com/aws/aws-sdk-go"
       import_patterns:
         - "aws-sdk-go"
+  maven:
+    - package: "software.amazon.awssdk:*"
+      import_patterns:
+        - "software.amazon.awssdk"
+        - "S3Client"
+        - "DynamoDbClient"
+        - "SqsClient"
+        - "SnsClient"
+        - "LambdaClient"
   pypi:
     - package: "boto3"
       import_patterns:

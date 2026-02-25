@@ -1,0 +1,9 @@
+[versions]
+stripe = "24.0.0"
+aws-s3 = "2.21.0"
+postgresql = "42.7.1"
+
+[libraries]
+stripe-java = { module = "com.stripe:stripe-java", version.ref = "stripe" }
+aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-s3" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.1" }
