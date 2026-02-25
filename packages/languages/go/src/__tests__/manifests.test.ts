@@ -17,6 +17,7 @@ describe("GoPlugin", () => {
       if (stripe && stripe.kind === "package") {
         expect(stripe.ecosystem).toBe("go");
         expect(stripe.current_version).toBe("v78.1.0");
+        expect(stripe.version_constraint).toBe(">= v78.1.0");
       }
     });
 

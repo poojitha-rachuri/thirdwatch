@@ -22,6 +22,7 @@ export function detectImports(source: string): Map<string, string> {
       // Named import: s3 "github.com/aws/aws-sdk-go-v2/service/s3"
       const named = trimmed.match(/^(\w+)\s+"([^"]+)"/);
       if (named) {
+        if (named[1] === "_") continue; // blank import — side-effect only
         imports.set(named[1]!, named[2]!);
         continue;
       }
