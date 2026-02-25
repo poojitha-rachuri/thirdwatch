@@ -65,7 +65,7 @@ function makeGoPackageEntry(
     name: modulePath,
     ecosystem: "go",
     current_version: version,
-    version_constraint: version,
+    version_constraint: `>= ${version}`,
     manifest_file: manifestFile,
     locations: [],
     usage_count: 0,

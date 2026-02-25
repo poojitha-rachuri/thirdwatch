@@ -20,7 +20,7 @@ patterns:
   go:
     - package: "github.com/slack-go/slack"
       import_patterns:
-        - "slack"
+        - "slack-go"
   pypi:
     - package: "slack-sdk"
       import_patterns:

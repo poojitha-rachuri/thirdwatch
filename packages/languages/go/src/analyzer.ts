@@ -88,18 +88,25 @@ export function analyzeGo(context: AnalyzerContext): DependencyEntry[] {
   // Parse imports to resolve SDK providers
   const imports = detectImports(context.source);
 
-  // Detect SDK entries from imports
+  // Track emitted SDK providers to avoid duplicates (P1 #1)
+  const emittedSdkProviders = new Map<string, DependencyEntry>();
+
+  // Detect SDK entries from imports (deduplicated by provider)
   for (const [, importPath] of imports) {
     for (const [prefix, [provider, sdkPackage]] of Object.entries(SDK_PROVIDERS)) {
       if (importPath === prefix || importPath.startsWith(prefix + "/")) {
-        entries.push({
-          kind: "sdk",
-          provider,
-          sdk_package: sdkPackage,
-          locations: [{ file: rel, line: 1, context: `import "${importPath}"` }],
-          usage_count: 1,
-          confidence: "high",
-        });
+        if (!emittedSdkProviders.has(provider)) {
+          const entry: DependencyEntry = {
+            kind: "sdk",
+            provider,
+            sdk_package: sdkPackage,
+            locations: [{ file: rel, line: 1, context: `import "${importPath}"` }],
+            usage_count: 1,
+            confidence: "high",
+          };
+          emittedSdkProviders.set(provider, entry);
+          entries.push(entry);
+        }
         break;
       }
     }
@@ -142,31 +149,45 @@ export function analyzeGo(context: AnalyzerContext): DependencyEntry[] {
       });
     }
 
-    // --- SDK constructor detection ---
+    // --- SDK constructor detection (deduplicated by provider) ---
     for (const [pattern, provider, sdkPackage] of SDK_CONSTRUCTORS) {
       const match = line.match(pattern);
       if (!match) continue;
 
-      // For AWS NewFromConfig, extract the service name from the variable
-      let servicesUsed: string[] | undefined;
-      if (provider === "aws" && match[1]) {
-        servicesUsed = [match[1]];
-      }
-      // For GCP NewClient, extract the service name
-      if (provider === "gcp" && match[1]) {
-        servicesUsed = [match[1]];
+      // Gate GCP constructor detection on actual GCP import presence (P3 #9)
+      if (provider === "gcp") {
+        const isGcpImported = [...imports.values()].some((p) => p.startsWith("cloud.google.com/go"));
+        if (!isGcpImported) continue;
       }
 
-      entries.push({
-        kind: "sdk",
-        provider,
-        sdk_package: sdkPackage,
-        ...(servicesUsed ? { services_used: servicesUsed } : {}),
-        api_methods: [trimmed.slice(0, 80)],
-        locations: [{ file: rel, line: lineNum, context: trimmed }],
-        usage_count: 1,
-        confidence: "high",
-      });
+      // Resolve alias to canonical service name via imports map (P1 #2)
+      let serviceName: string | undefined;
+      if ((provider === "aws" || provider === "gcp") && match[1]) {
+        const resolvedPath = imports.get(match[1]) ?? match[1];
+        serviceName = resolvedPath.split("/").pop() ?? match[1];
+      }
+
+      // Enrich existing entry or create a new one (P1 #1)
+      const existing = emittedSdkProviders.get(provider);
+      if (existing && existing.kind === "sdk") {
+        if (serviceName) {
+          existing.services_used = [...(existing.services_used ?? []), serviceName];
+        }
+        existing.locations.push({ file: rel, line: lineNum, context: trimmed });
+      } else {
+        const entry: DependencyEntry = {
+          kind: "sdk",
+          provider,
+          sdk_package: sdkPackage,
+          ...(serviceName ? { services_used: [serviceName] } : {}),
+          api_methods: [trimmed.slice(0, 80)],
+          locations: [{ file: rel, line: lineNum, context: trimmed }],
+          usage_count: 1,
+          confidence: "high",
+        };
+        emittedSdkProviders.set(provider, entry);
+        entries.push(entry);
+      }
     }
 
     // --- Infrastructure detection ---
@@ -177,10 +198,12 @@ export function analyzeGo(context: AnalyzerContext): DependencyEntry[] {
       // For sql.Open, the type comes from the match group
       const resolvedType = infraType === "match_group" ? mapDriverType(match[1]!) : infraType;
 
-      // Try to extract connection string from the line
-      const connRefMatch = line.match(/["']([^"']+)["']/);
+      // Try to extract connection string from the line (skip driver name for sql.Open)
+      const allQuoted = [...line.matchAll(/["']([^"']+)["']/g)].map((m) => m[1]!);
       const envMatch = line.match(/os\.Getenv\(\s*["']([^"']+)["']\s*\)/);
-      const connectionRef = envMatch?.[1] ?? connRefMatch?.[1] ?? "unknown";
+      // For sql.Open("driver", "connStr"), pick the second quoted string as connection ref
+      const connValue = allQuoted.length > 1 ? allQuoted[allQuoted.length - 1]! : allQuoted[0];
+      const connectionRef = envMatch?.[1] ?? redactConnString(connValue ?? "unknown");
 
       entries.push({
         kind: "infrastructure",
@@ -205,7 +228,7 @@ export function analyzeGo(context: AnalyzerContext): DependencyEntry[] {
           entries.push({
             kind: "infrastructure",
             type: infraType,
-            connection_ref: connMatch[0],
+            connection_ref: redactConnString(connMatch[0]),
             locations: [{ file: rel, line: lineNum, context: trimmed }],
             confidence: "high",
           });
@@ -229,4 +252,9 @@ function mapDriverType(driver: string): string {
     default:
       return driver;
   }
+}
+
+/** Redact credentials from connection string URLs (P1 #3) */
+function redactConnString(raw: string): string {
+  return raw.replace(/:\/\/[^@]+@/, "://<redacted>@");
 }
