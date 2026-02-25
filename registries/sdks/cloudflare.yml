@@ -16,6 +16,11 @@ patterns:
       import_patterns:
         - "wrangler"
 
+  go:
+    - package: "github.com/cloudflare/cloudflare-go"
+      import_patterns:
+        - "cloudflare-go"
+
 known_api_base_urls:
   - "https://api.cloudflare.com"
 

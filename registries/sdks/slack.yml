@@ -17,6 +17,10 @@ patterns:
       import_patterns:
         - "@slack/webhook"
         - "IncomingWebhook"
+  go:
+    - package: "github.com/slack-go/slack"
+      import_patterns:
+        - "slack"
   pypi:
     - package: "slack-sdk"
       import_patterns:

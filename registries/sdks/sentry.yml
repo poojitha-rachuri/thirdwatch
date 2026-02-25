@@ -18,6 +18,10 @@ patterns:
     - package: "@sentry/browser"
       import_patterns:
         - "@sentry/browser"
+  go:
+    - package: "github.com/getsentry/sentry-go"
+      import_patterns:
+        - "sentry-go"
   pypi:
     - package: "sentry-sdk"
       import_patterns:

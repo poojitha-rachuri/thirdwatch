@@ -9,6 +9,10 @@ patterns:
       import_patterns:
         - "openai"
         - "OpenAI"
+  go:
+    - package: "github.com/sashabaranov/go-openai"
+      import_patterns:
+        - "go-openai"
   pypi:
     - package: "openai"
       import_patterns:

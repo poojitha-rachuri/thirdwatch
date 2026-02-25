@@ -9,6 +9,10 @@ patterns:
       import_patterns:
         - "resend"
         - "Resend"
+  go:
+    - package: "github.com/resend/resend-go"
+      import_patterns:
+        - "resend-go"
   pypi:
     - package: "resend"
       import_patterns:

@@ -18,6 +18,16 @@ patterns:
       import_patterns:
         - "aws-sdk"
         - "AWS"
+  go:
+    - package: "github.com/aws/aws-sdk-go-v2"
+      import_patterns:
+        - "aws-sdk-go-v2"
+    - package: "github.com/aws/aws-sdk-go-v2/service/s3"
+    - package: "github.com/aws/aws-sdk-go-v2/service/sqs"
+    - package: "github.com/aws/aws-sdk-go-v2/service/dynamodb"
+    - package: "github.com/aws/aws-sdk-go"
+      import_patterns:
+        - "aws-sdk-go"
   pypi:
     - package: "boto3"
       import_patterns:

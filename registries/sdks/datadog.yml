@@ -12,6 +12,13 @@ patterns:
     - package: "@datadog/datadog-api-client"
       import_patterns:
         - "@datadog/datadog-api-client"
+  go:
+    - package: "gopkg.in/DataDog/dd-trace-go.v1"
+      import_patterns:
+        - "dd-trace-go"
+    - package: "github.com/DataDog/datadog-api-client-go"
+      import_patterns:
+        - "datadog-api-client-go"
   pypi:
     - package: "ddtrace"
       import_patterns:
