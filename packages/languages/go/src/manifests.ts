@@ -18,6 +18,19 @@ export async function parseManifests(
   return entries;
 }
 
+/**
+ * Parse go.mod using a simple state machine:
+ *
+ *   1. Lines matching `require (` or `require(` open a require block.
+ *   2. Inside a require block, each `module vX.Y.Z` line is a dependency.
+ *   3. A bare `)` closes whichever block is open — since `inRequireBlock`
+ *      is only set by `require`, this cannot mis-close a `replace` or
+ *      `exclude` block.
+ *   4. Single-line `require module vX.Y.Z` (no parens) is also handled
+ *      outside any block. The regex cannot match `require (` because `(`
+ *      is not a valid module path character followed by a version.
+ *   5. Lines containing `// indirect` are always skipped.
+ */
 function parseGoMod(content: string, manifestFile: string): DependencyEntry[] {
   const entries: DependencyEntry[] = [];
   const lines = content.split("\n");
@@ -26,7 +39,8 @@ function parseGoMod(content: string, manifestFile: string): DependencyEntry[] {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.startsWith("require (")) {
+    // Open require block: `require (` or `require(`
+    if (/^require\s*\(/.test(trimmed)) {
       inRequireBlock = true;
       continue;
     }
@@ -45,7 +59,7 @@ function parseGoMod(content: string, manifestFile: string): DependencyEntry[] {
       }
     }
 
-    // Single-line require
+    // Single-line require (without parens)
     const singleMatch = trimmed.match(/^require\s+([^\s]+)\s+(v[^\s]+)/);
     if (singleMatch) {
       entries.push(makeGoPackageEntry(singleMatch[1]!, singleMatch[2]!, manifestFile));
