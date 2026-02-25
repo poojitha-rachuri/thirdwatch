@@ -13,6 +13,12 @@ patterns:
     - package: "github.com/stripe/stripe-go"
       import_patterns:
         - "stripe-go"
+  maven:
+    - package: "com.stripe:stripe-java"
+      import_patterns:
+        - "com.stripe"
+        - "Charge.create"
+        - "PaymentIntent.create"
   pypi:
     - package: "stripe"
       import_patterns:

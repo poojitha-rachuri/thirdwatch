@@ -13,6 +13,11 @@ patterns:
     - package: "github.com/twilio/twilio-go"
       import_patterns:
         - "twilio-go"
+  maven:
+    - package: "com.twilio.sdk:twilio"
+      import_patterns:
+        - "com.twilio"
+        - "Twilio.init"
   pypi:
     - package: "twilio"
       import_patterns:

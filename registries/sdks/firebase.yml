@@ -21,6 +21,11 @@ patterns:
     - package: "firebase.google.com/go"
       import_patterns:
         - "firebase.google.com/go"
+  maven:
+    - package: "com.google.firebase:firebase-admin"
+      import_patterns:
+        - "com.google.firebase"
+        - "FirebaseApp.initializeApp"
   pypi:
     - package: "firebase-admin"
       import_patterns:

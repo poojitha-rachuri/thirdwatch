@@ -58,6 +58,8 @@ const MANIFEST_PATTERNS = [
   "Gemfile",
   "pom.xml",
   "build.gradle",
+  "build.gradle.kts",
+  "libs.versions.toml",
   "Cargo.toml",
 ];
 

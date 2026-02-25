@@ -16,6 +16,11 @@ patterns:
     - package: "github.com/sendgrid/sendgrid-go"
       import_patterns:
         - "sendgrid-go"
+  maven:
+    - package: "com.sendgrid:sendgrid-java"
+      import_patterns:
+        - "com.sendgrid"
+        - "new SendGrid"
   pypi:
     - package: "sendgrid"
       import_patterns:
