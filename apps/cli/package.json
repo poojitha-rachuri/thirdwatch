@@ -22,6 +22,7 @@
     "@thirdwatch/language-go": "workspace:*",
     "@thirdwatch/language-java": "workspace:*",
     "@thirdwatch/language-javascript": "workspace:*",
+    "@thirdwatch/language-rust": "workspace:*",
     "@thirdwatch/language-python": "workspace:*",
     "@thirdwatch/tdm": "workspace:*",
     "commander": "^12.0.0",

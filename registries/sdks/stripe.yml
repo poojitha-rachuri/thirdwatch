@@ -13,6 +13,10 @@ patterns:
     - package: "github.com/stripe/stripe-go"
       import_patterns:
         - "stripe-go"
+  cargo:
+    - package: "stripe-rust"
+      import_patterns:
+        - "stripe"
   maven:
     - package: "com.stripe:stripe-java"
       import_patterns:

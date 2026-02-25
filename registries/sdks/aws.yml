@@ -28,6 +28,19 @@ patterns:
     - package: "github.com/aws/aws-sdk-go"
       import_patterns:
         - "aws-sdk-go"
+  cargo:
+    - package: "aws-sdk-s3"
+      import_patterns:
+        - "aws_sdk_s3"
+    - package: "aws-sdk-sqs"
+      import_patterns:
+        - "aws_sdk_sqs"
+    - package: "aws-sdk-dynamodb"
+      import_patterns:
+        - "aws_sdk_dynamodb"
+    - package: "aws-config"
+      import_patterns:
+        - "aws_config"
   maven:
     - package: "software.amazon.awssdk:*"
       import_patterns:
