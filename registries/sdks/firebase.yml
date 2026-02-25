@@ -17,6 +17,10 @@ patterns:
       import_patterns:
         - "firebase-admin"
         - "admin.initializeApp"
+  go:
+    - package: "firebase.google.com/go"
+      import_patterns:
+        - "firebase.google.com/go"
   pypi:
     - package: "firebase-admin"
       import_patterns:

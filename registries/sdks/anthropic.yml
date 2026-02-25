@@ -9,6 +9,10 @@ patterns:
       import_patterns:
         - "@anthropic-ai/sdk"
         - "Anthropic"
+  go:
+    - package: "github.com/anthropics/anthropic-sdk-go"
+      import_patterns:
+        - "anthropic-sdk-go"
   pypi:
     - package: "anthropic"
       import_patterns:

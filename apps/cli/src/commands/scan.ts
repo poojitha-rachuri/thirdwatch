@@ -5,6 +5,7 @@ import { writeFile } from "node:fs/promises";
 import { scan } from "@thirdwatch/core";
 import { PythonPlugin } from "@thirdwatch/language-python";
 import { JavaScriptPlugin } from "@thirdwatch/language-javascript";
+import { GoPlugin } from "@thirdwatch/language-go";
 import { createSpinner } from "../ui/spinner.js";
 import { printSummaryTable } from "../output/summary.js";
 import { formatJson } from "../output/json.js";
@@ -67,7 +68,7 @@ export const scanCommand = new Command("scan")
     if (!quiet) s.start("Discovering files…");
 
     // Build plugin list — filter by --languages if provided
-    const allPlugins = [new PythonPlugin(), new JavaScriptPlugin()];
+    const allPlugins = [new PythonPlugin(), new JavaScriptPlugin(), new GoPlugin()];
     const plugins =
       opts.languages && opts.languages.length > 0
         ? allPlugins.filter((p) => opts.languages!.includes(p.language))

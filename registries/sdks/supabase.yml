@@ -10,6 +10,10 @@ patterns:
         - "@supabase/supabase-js"
         - "createClient"
         - "SupabaseClient"
+  go:
+    - package: "github.com/supabase-community/supabase-go"
+      import_patterns:
+        - "supabase-go"
   pypi:
     - package: "supabase"
       import_patterns:

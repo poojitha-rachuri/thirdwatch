@@ -9,6 +9,10 @@ patterns:
       import_patterns:
         - "twilio"
         - "Twilio"
+  go:
+    - package: "github.com/twilio/twilio-go"
+      import_patterns:
+        - "twilio-go"
   pypi:
     - package: "twilio"
       import_patterns:

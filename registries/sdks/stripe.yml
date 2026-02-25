@@ -9,6 +9,10 @@ patterns:
       import_patterns:
         - "stripe"
         - "Stripe"
+  go:
+    - package: "github.com/stripe/stripe-go"
+      import_patterns:
+        - "stripe-go"
   pypi:
     - package: "stripe"
       import_patterns:

@@ -12,6 +12,10 @@ patterns:
     - package: "@sendgrid/client"
       import_patterns:
         - "@sendgrid/client"
+  go:
+    - package: "github.com/sendgrid/sendgrid-go"
+      import_patterns:
+        - "sendgrid-go"
   pypi:
     - package: "sendgrid"
       import_patterns:
