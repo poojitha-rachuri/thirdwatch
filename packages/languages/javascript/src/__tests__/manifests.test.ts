@@ -113,6 +113,42 @@ describe("parseManifests", () => {
     });
   });
 
+  describe("pnpm-lock.yaml (v6 format)", () => {
+    const v6Root = resolve(fixturesRoot, "pnpm-v6");
+
+    it("parses /name/version keys from v6 format", async () => {
+      const entries = await plugin.analyzeManifests!(
+        [resolve(v6Root, "pnpm-lock.yaml")],
+        v6Root,
+      );
+
+      expect(entries).toHaveLength(3);
+
+      const stripe = entries.find(
+        (e) => e.kind === "package" && e.name === "stripe",
+      );
+      expect(stripe).toBeDefined();
+      if (stripe?.kind === "package") {
+        expect(stripe.current_version).toBe("7.1.0");
+      }
+    });
+
+    it("handles scoped packages in v6 format", async () => {
+      const entries = await plugin.analyzeManifests!(
+        [resolve(v6Root, "pnpm-lock.yaml")],
+        v6Root,
+      );
+
+      const awsS3 = entries.find(
+        (e) => e.kind === "package" && e.name === "@aws-sdk/client-s3",
+      );
+      expect(awsS3).toBeDefined();
+      if (awsS3?.kind === "package") {
+        expect(awsS3.current_version).toBe("3.500.0");
+      }
+    });
+  });
+
   describe("package-lock.json", () => {
     it("parses v3 format", async () => {
       const entries = await plugin.analyzeManifests!(
@@ -211,8 +247,8 @@ describe("parseManifests", () => {
       expect(oak).toBeDefined();
       if (oak?.kind === "package") {
         expect(oak.ecosystem).toBe("deno");
-        expect(oak.current_version).toBe("v12.6.1");
-        expect(oak.version_constraint).toBe("v12.6.1");
+        expect(oak.current_version).toBe("12.6.1");
+        expect(oak.version_constraint).toBe("12.6.1");
       }
     });
   });

@@ -6,8 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         "stripe>=7.0",
+        "requests[security]>=2.31",
         "boto3~=1.34",
-        "requests>=2.31",
     ],
     extras_require={
         "dev": ["pytest>=7.0"],

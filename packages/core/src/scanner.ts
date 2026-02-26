@@ -5,6 +5,7 @@ import fg from "fast-glob";
 import type { TDM } from "@thirdwatch/tdm";
 import type { LanguageAnalyzerPlugin, DependencyEntry } from "./plugin.js";
 import { buildTDM } from "./build-tdm.js";
+import { mergeManifestAndLockfile } from "./lockfile.js";
 import { loadConfig, loadIgnore } from "./config.js";
 import { loadEnvFile, buildEnvMap } from "./resolve.js";
 
@@ -186,6 +187,24 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   );
   const manifestEntries = manifestResults.flat();
 
+  // Merge lockfile resolved versions into manifest constraint entries
+  const LOCKFILE_NAMES = new Set([
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "Cargo.lock",
+    "composer.lock",
+  ]);
+
+  const manifestOnly = manifestEntries.filter(
+    (e) => e.kind !== "package" || !LOCKFILE_NAMES.has(basename(e.manifest_file)),
+  );
+  const lockfileOnly = manifestEntries.filter(
+    (e) => e.kind === "package" && LOCKFILE_NAMES.has(basename(e.manifest_file)),
+  );
+
+  const mergedManifestEntries = mergeManifestAndLockfile(manifestOnly, lockfileOnly);
+
   // Analyze source files with concurrency control
   const errors: ScanError[] = [];
 
@@ -225,7 +244,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   const fileResults = await pLimit(tasks, concurrency);
   const filesSkipped = fileResults.filter((r) => r.skipped).length;
   const allEntries: DependencyEntry[] = [
-    ...manifestEntries,
+    ...mergedManifestEntries,
     ...fileResults.flatMap((r) => r.entries),
   ];
 

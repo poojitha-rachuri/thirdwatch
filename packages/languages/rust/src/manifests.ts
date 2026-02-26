@@ -91,6 +91,7 @@ function parseCargoToml(content: string, manifestFile: string): DependencyEntry[
         version = value;
       } else if (typeof value === "object" && value !== null) {
         const obj = value as Record<string, unknown>;
+        if (obj.path || obj.workspace) continue;
         if (typeof obj.version === "string") version = obj.version;
       }
 

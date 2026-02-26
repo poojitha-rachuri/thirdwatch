@@ -201,12 +201,30 @@ function parsePipfile(content: string, manifestFile: string): DependencyEntry[] 
 function parseSetupPy(content: string, manifestFile: string): DependencyEntry[] {
   const entries: DependencyEntry[] = [];
 
-  // Match install_requires = [...] across multiple lines
-  const match = content.match(/install_requires\s*=\s*\[([\s\S]*?)\]/);
-  if (!match) return entries;
+  // Find the start of install_requires=[
+  const startMatch = content.match(/install_requires\s*=\s*\[/);
+  if (!startMatch || startMatch.index === undefined) return entries;
 
-  const block = match[1]!;
-  // Extract quoted strings
+  const blockStart = startMatch.index + startMatch[0].length;
+  let depth = 1;
+  let inString: string | null = null;
+  let i = blockStart;
+
+  while (i < content.length && depth > 0) {
+    const ch = content[i]!;
+    if (inString) {
+      if (ch === inString && content[i - 1] !== "\\") inString = null;
+    } else {
+      if (ch === '"' || ch === "'") inString = ch;
+      else if (ch === "[") depth++;
+      else if (ch === "]") depth--;
+    }
+    i++;
+  }
+
+  const block = content.slice(blockStart, i - 1);
+
+  // Extract quoted strings from the block
   const stringPattern = /["']([^"']+)["']/g;
   let m: RegExpExecArray | null;
   while ((m = stringPattern.exec(block)) !== null) {

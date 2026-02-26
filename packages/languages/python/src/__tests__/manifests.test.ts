@@ -140,6 +140,13 @@ describe("PythonPlugin", () => {
 
       const requests = entries.find((e) => e.kind === "package" && e.name === "requests");
       expect(requests).toBeDefined();
+
+      // boto3 comes after requests[security] — ensures bracket-aware parsing works
+      const boto3 = entries.find((e) => e.kind === "package" && e.name === "boto3");
+      expect(boto3).toBeDefined();
+      if (boto3 && boto3.kind === "package") {
+        expect(boto3.version_constraint).toBe("~=1.34");
+      }
     });
 
     // ----- setup.cfg -----

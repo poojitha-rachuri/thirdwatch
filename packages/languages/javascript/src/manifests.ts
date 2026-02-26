@@ -150,16 +150,39 @@ function parsePnpmLock(
 function parsePnpmPackageKey(
   key: string,
 ): { name: string; version: string } | null {
-  // Scoped: @scope/name@version
+  // v6/v7/v8 format: /name/version or /@scope/name/version (check before @ to avoid misparse)
+  if (key.startsWith("/")) {
+    const withoutSlash = key.slice(1);
+    if (withoutSlash.startsWith("@")) {
+      // /@scope/name/version — find the last / to split name from version
+      const lastSlash = withoutSlash.lastIndexOf("/");
+      if (lastSlash <= 0) return null;
+      return {
+        name: withoutSlash.slice(0, lastSlash),
+        version: withoutSlash.slice(lastSlash + 1),
+      };
+    }
+    // /name/version
+    const slashIndex = withoutSlash.indexOf("/");
+    if (slashIndex < 0) return null;
+    return {
+      name: withoutSlash.slice(0, slashIndex),
+      version: withoutSlash.slice(slashIndex + 1),
+    };
+  }
+
+  // v9 format: name@version or @scope/name@version
   if (key.startsWith("@")) {
     const lastAt = key.lastIndexOf("@");
     if (lastAt <= 0) return null;
     return { name: key.slice(0, lastAt), version: key.slice(lastAt + 1) };
   }
-  // Unscoped: name@version
   const atIndex = key.indexOf("@");
-  if (atIndex < 0) return null;
-  return { name: key.slice(0, atIndex), version: key.slice(atIndex + 1) };
+  if (atIndex > 0) {
+    return { name: key.slice(0, atIndex), version: key.slice(atIndex + 1) };
+  }
+
+  return null;
 }
 
 function parsePackageLockJson(
@@ -267,7 +290,7 @@ function parseDenoSpecifier(
   if (denoMatch && denoMatch[1] && denoMatch[2]) {
     return {
       name: denoMatch[1],
-      version: denoMatch[2],
+      version: denoMatch[2].replace(/^v/, ""),
       ecosystem: "deno",
     };
   }

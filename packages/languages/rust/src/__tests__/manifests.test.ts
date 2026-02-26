@@ -69,6 +69,22 @@ describe("RustPlugin", () => {
       }
     });
 
+    it("skips path dependencies", async () => {
+      const manifestFile = resolve(fixturesRoot, "Cargo.toml");
+      const entries = await plugin.analyzeManifests!([manifestFile], fixturesRoot);
+
+      const internal = entries.find((e) => e.kind === "package" && e.name === "my-internal-crate");
+      expect(internal).toBeUndefined();
+    });
+
+    it("skips workspace dependencies", async () => {
+      const manifestFile = resolve(fixturesRoot, "Cargo.toml");
+      const entries = await plugin.analyzeManifests!([manifestFile], fixturesRoot);
+
+      const shared = entries.find((e) => e.kind === "package" && e.name === "shared-types");
+      expect(shared).toBeUndefined();
+    });
+
     it("ignores non-Cargo.toml files", async () => {
       const entries = await plugin.analyzeManifests!(
         [resolve(fixturesRoot, "package.json")],
