@@ -60,6 +60,14 @@ function parseComposerJson(content: string, manifestFile: string): DependencyEnt
 }
 
 function resolveVersion(constraint: string): string {
-  const cleaned = constraint.replace(/^[\^~>=<|*\s]+/, "");
-  return cleaned || constraint;
+  // Plain version: no prefix needed
+  if (/^\d/.test(constraint)) return constraint;
+  // ^X.Y or ~X.Y (Composer caret/tilde) → extract X.Y
+  const caret = constraint.match(/^[~^]\s*([^\s,|]+)/);
+  if (caret) return caret[1]!;
+  // >=X.Y or >X.Y → extract first version token only (stop at space, comma, pipe, or </>)
+  const gte = constraint.match(/^>=?\s*([^\s,|<>]+)/);
+  if (gte) return gte[1]!;
+  // Wildcard or unparseable — strip leading operators
+  return constraint.replace(/^[\^~>=<|*\s]+/, "") || "unknown";
 }

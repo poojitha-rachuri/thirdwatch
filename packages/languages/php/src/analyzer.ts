@@ -4,18 +4,71 @@ import type { Confidence } from "@thirdwatch/tdm";
 
 // ---------------------------------------------------------------------------
 // PHP `use` import detection → map alias to fully qualified namespace
+// Runs line-by-line to: (a) skip commented-out `use` statements, and
+// (b) track the actual line number of each import.
 // ---------------------------------------------------------------------------
 
-function detectUseImports(source: string): Map<string, string> {
-  const imports = new Map<string, string>();
-  const useRe = /^\s*use\s+([A-Za-z0-9_\\]+)(?:\s+as\s+(\w+))?\s*;/gm;
-  for (const m of source.matchAll(useRe)) {
-    const fullPath = m[1]!;
-    const alias = m[2] ?? fullPath.split("\\").pop()!;
-    imports.set(alias, fullPath);
+function detectUseImports(source: string): Map<string, { fullPath: string; line: number }> {
+  const imports = new Map<string, { fullPath: string; line: number }>();
+  const lines = source.split("\n");
+  let inBlockComment = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]!;
+    const trimmed = raw.trim();
+
+    // Skip single-line comments
+    if (trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+
+    // Track block comments
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      continue;
+    }
+
+    // Simple: use Ns\Class; or use Ns\Class as Alias;
+    const simpleMatch = raw.match(/^\s*use\s+([A-Za-z0-9_\\]+)(?:\s+as\s+(\w+))?\s*;/);
+    if (simpleMatch) {
+      const fullPath = simpleMatch[1]!;
+      const alias = simpleMatch[2] ?? fullPath.split("\\").pop()!;
+      imports.set(alias, { fullPath, line: i + 1 });
+      continue;
+    }
+
+    // Grouped: use Ns\{ClassA, ClassB as Alias};
+    const groupedMatch = raw.match(/^\s*use\s+([A-Za-z0-9_\\]+)\\\{([^}]+)\}\s*;/);
+    if (groupedMatch) {
+      const nsPrefix = groupedMatch[1]!;
+      for (const item of groupedMatch[2]!.split(",").map((s) => s.trim()).filter(Boolean)) {
+        const aliasMatch = item.match(/^(\w+)\s+as\s+(\w+)$/);
+        if (aliasMatch) {
+          const fullPath = `${nsPrefix}\\${aliasMatch[1]!}`;
+          imports.set(aliasMatch[2]!, { fullPath, line: i + 1 });
+        } else {
+          const fullPath = `${nsPrefix}\\${item}`;
+          const alias = item.split("\\").pop()!;
+          imports.set(alias, { fullPath, line: i + 1 });
+        }
+      }
+    }
   }
+
   return imports;
 }
+
+// Pre-computed for performance (avoid Object.entries in hot loop)
+const SDK_IMPORT_PREFIX_ENTRIES = Object.entries({
+  Stripe: ["stripe", "stripe/stripe-php"],
+  Aws: ["aws", "aws/aws-sdk-php"],
+  Twilio: ["twilio", "twilio/sdk"],
+  "Kreait\\Firebase": ["firebase", "kreait/firebase-php"],
+  SendGrid: ["sendgrid", "sendgrid/sendgrid"],
+  Sentry: ["sentry", "sentry/sentry"],
+} as Record<string, [string, string]>);
 
 // ---------------------------------------------------------------------------
 // HTTP client patterns: [regex, kind tag]
@@ -57,16 +110,6 @@ const SDK_PATTERNS: [RegExp, string, string][] = [
   [/\\?Sentry\\init\(/, "sentry", "sentry/sentry"],
 ];
 
-// SDK import prefixes (from `use` statements) → [provider, sdk_package]
-const SDK_IMPORT_PREFIXES: Record<string, [string, string]> = {
-  "Stripe": ["stripe", "stripe/stripe-php"],
-  "Aws": ["aws", "aws/aws-sdk-php"],
-  "Twilio": ["twilio", "twilio/sdk"],
-  "Kreait\\Firebase": ["firebase", "kreait/firebase-php"],
-  "SendGrid": ["sendgrid", "sendgrid/sendgrid"],
-  "Sentry": ["sentry", "sentry/sentry"],
-};
-
 // ---------------------------------------------------------------------------
 // Infrastructure patterns: [regex, infra type]
 // ---------------------------------------------------------------------------
@@ -78,9 +121,9 @@ const INFRA_PATTERNS: [RegExp, string][] = [
   [/new\s+\\?PDO\(\s*['"]sqlite:/, "sqlite"],
   // Predis
   [/new\s+\\?Predis\\Client\(/, "redis"],
-  // PhpRedis
+  // PhpRedis — use negated class to avoid backtracking
   [/new\s+\\?Redis\(\)/, "redis"],
-  [/->connect\(\s*['"][\w.]+['"]\s*,\s*6379/, "redis"],
+  [/->connect\(\s*["'][^"']+["']\s*,\s*6379/, "redis"],
   // MongoDB
   [/new\s+\\?MongoDB\\Client\(/, "mongodb"],
   // Doctrine DriverManager
@@ -97,6 +140,9 @@ const CONN_STRING_PATTERNS: [RegExp, string][] = [
   [/redis:\/\/[^\s"']+/, "redis"],
 ];
 
+// Pre-compiled for first quoted-string extraction (avoid per-line object alloc)
+const FIRST_QUOTED_RE = /["']([^"']+)["']/;
+
 // ---------------------------------------------------------------------------
 // Main analyzer entry point
 // ---------------------------------------------------------------------------
@@ -106,22 +152,25 @@ export function analyzePhp(context: AnalyzerContext): DependencyEntry[] {
   const lines = context.source.split("\n");
   const rel = relative(context.scanRoot, context.filePath);
 
-  // Parse use imports
+  // Parse use imports (comment-aware, with line numbers)
   const imports = detectUseImports(context.source);
 
   // Track emitted SDK providers to deduplicate
   const emittedSdkProviders = new Map<string, DependencyEntry>();
 
+  // Set for O(1) conn-string dedup
+  const emittedConnStrings = new Set<string>();
+
   // Detect SDK from `use` imports
-  for (const [, fullPath] of imports) {
-    for (const [prefix, [provider, sdkPackage]] of Object.entries(SDK_IMPORT_PREFIXES)) {
+  for (const [, { fullPath, line: importLine }] of imports) {
+    for (const [prefix, [provider, sdkPackage]] of SDK_IMPORT_PREFIX_ENTRIES) {
       if (fullPath === prefix || fullPath.startsWith(prefix + "\\")) {
         if (!emittedSdkProviders.has(provider)) {
           const entry: DependencyEntry = {
             kind: "sdk",
             provider,
             sdk_package: sdkPackage,
-            locations: [{ file: rel, line: 1, context: `use ${fullPath}` }],
+            locations: [{ file: rel, line: importLine, context: `use ${fullPath}` }],
             usage_count: 1,
             confidence: "high",
           };
@@ -197,6 +246,7 @@ export function analyzePhp(context: AnalyzerContext): DependencyEntry[] {
       const existing = emittedSdkProviders.get(provider);
       if (existing && existing.kind === "sdk") {
         existing.locations.push({ file: rel, line: lineNum, context: trimmed });
+        existing.usage_count++;
       } else {
         const entry: DependencyEntry = {
           kind: "sdk",
@@ -217,14 +267,14 @@ export function analyzePhp(context: AnalyzerContext): DependencyEntry[] {
       const match = line.match(pattern);
       if (!match) continue;
 
-      const allQuoted = [...line.matchAll(/["']([^"']+)["']/g)].map((m) => m[1]!);
-      const connectionRef = allQuoted[0] ?? "unknown";
+      const firstQuoted = FIRST_QUOTED_RE.exec(line);
+      const connectionRef = firstQuoted?.[1] ?? "unknown";
 
       entries.push({
         kind: "infrastructure",
         type: infraType,
         connection_ref: redactConnString(connectionRef),
-        locations: [{ file: rel, line: lineNum, context: trimmed }],
+        locations: [{ file: rel, line: lineNum, context: redactConnString(trimmed) }],
         confidence: "high",
       });
     }
@@ -232,22 +282,18 @@ export function analyzePhp(context: AnalyzerContext): DependencyEntry[] {
     // --- Connection string URL patterns ---
     for (const [pattern, infraType] of CONN_STRING_PATTERNS) {
       const connMatch = line.match(pattern);
-      if (connMatch) {
-        const alreadyDetected = entries.some(
-          (e) =>
-            e.kind === "infrastructure" &&
-            e.type === infraType &&
-            e.locations.some((l) => l.line === lineNum),
-        );
-        if (!alreadyDetected) {
-          entries.push({
-            kind: "infrastructure",
-            type: infraType,
-            connection_ref: redactConnString(connMatch[0]),
-            locations: [{ file: rel, line: lineNum, context: trimmed }],
-            confidence: "high",
-          });
-        }
+      if (!connMatch) continue;
+
+      const connKey = `${lineNum}:${infraType}`;
+      if (!emittedConnStrings.has(connKey)) {
+        emittedConnStrings.add(connKey);
+        entries.push({
+          kind: "infrastructure",
+          type: infraType,
+          connection_ref: redactConnString(connMatch[0]),
+          locations: [{ file: rel, line: lineNum, context: redactConnString(trimmed) }],
+          confidence: "high",
+        });
       }
     }
   }
@@ -255,7 +301,14 @@ export function analyzePhp(context: AnalyzerContext): DependencyEntry[] {
   return entries;
 }
 
-/** Redact credentials from connection string URLs */
+/** Redact credentials from connection string URLs and query-string credential params */
 function redactConnString(raw: string): string {
-  return raw.replace(/:\/\/[^@]+@/, "://<redacted>@");
+  // Redact user:pass@ style credentials in URL connection strings
+  let result = raw.replace(/:\/\/[^@]+@/g, "://<redacted>@");
+  // Redact ?key=val and &key=val credential params
+  result = result.replace(
+    /([?&;](?:password|passwd|pwd|secret|token|key|auth|user)\s*=\s*)[^&\s"';]+/gi,
+    "$1<redacted>",
+  );
+  return result;
 }

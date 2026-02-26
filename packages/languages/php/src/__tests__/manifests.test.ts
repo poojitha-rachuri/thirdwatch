@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { resolve } from "node:path";
+import type { DependencyEntry } from "@thirdwatch/core";
 import { PhpPlugin } from "../index.js";
 
 const fixturesRoot = resolve(__dirname, "../../../../../fixtures/php-app");
@@ -7,18 +8,19 @@ const plugin = new PhpPlugin();
 
 describe("PhpPlugin", () => {
   describe("analyzeManifests", () => {
-    it("parses composer.json require dependencies", async () => {
-      const manifestFile = resolve(fixturesRoot, "composer.json");
-      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+    let entries: DependencyEntry[];
 
-      // 5 from require + 1 from require-dev = 6 (php and ext-* are excluded)
+    beforeAll(async () => {
+      const manifestFile = resolve(fixturesRoot, "composer.json");
+      entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+    });
+
+    it("parses composer.json require dependencies", () => {
+      // 5 from require (php and ext-mbstring excluded) + 1 from require-dev = 6
       expect(entries.length).toBe(6);
     });
 
-    it("detects Stripe PHP package", async () => {
-      const manifestFile = resolve(fixturesRoot, "composer.json");
-      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
-
+    it("detects Stripe PHP package", () => {
       const stripe = entries.find((e) => e.kind === "package" && e.name === "stripe/stripe-php");
       expect(stripe).toBeDefined();
       if (stripe && stripe.kind === "package") {
@@ -28,18 +30,17 @@ describe("PhpPlugin", () => {
       }
     });
 
-    it("excludes php and ext-* entries", async () => {
-      const manifestFile = resolve(fixturesRoot, "composer.json");
-      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
-
+    it("excludes php version constraint entry", () => {
       const php = entries.find((e) => e.kind === "package" && e.name === "php");
       expect(php).toBeUndefined();
     });
 
-    it("sets ecosystem to packagist", async () => {
-      const manifestFile = resolve(fixturesRoot, "composer.json");
-      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+    it("excludes ext-* entries (e.g. ext-mbstring)", () => {
+      const ext = entries.find((e) => e.kind === "package" && e.name.startsWith("ext-"));
+      expect(ext).toBeUndefined();
+    });
 
+    it("sets ecosystem to packagist", () => {
       for (const entry of entries) {
         if (entry.kind === "package") {
           expect(entry.ecosystem).toBe("packagist");
@@ -48,11 +49,11 @@ describe("PhpPlugin", () => {
     });
 
     it("ignores non-composer.json files", async () => {
-      const entries = await plugin.analyzeManifests(
+      const result = await plugin.analyzeManifests(
         [resolve(fixturesRoot, "package.json")],
         fixturesRoot,
       );
-      expect(entries.length).toBe(0);
+      expect(result.length).toBe(0);
     });
   });
 });
