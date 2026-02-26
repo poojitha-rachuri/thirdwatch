@@ -147,9 +147,13 @@ describe("RustPlugin", () => {
       expect(mongo).toBeDefined();
     });
 
-    it("detects Kafka via FutureProducer and bootstrap.servers", () => {
+    it("detects Kafka via FutureProducer with correct broker address", () => {
       const kafka = entries.filter((e) => e.kind === "infrastructure" && e.type === "kafka");
-      expect(kafka.length).toBeGreaterThanOrEqual(1);
+      expect(kafka.length).toBe(1);
+      if (kafka[0] && kafka[0].kind === "infrastructure") {
+        expect(kafka[0].connection_ref).toBe("localhost:9092");
+        expect(kafka[0].connection_ref).not.toBe("bootstrap.servers");
+      }
     });
 
     it("redacts MongoDB credentials", () => {

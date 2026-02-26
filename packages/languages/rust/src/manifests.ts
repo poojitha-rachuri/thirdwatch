@@ -11,8 +11,14 @@ export async function parseManifests(
 
   for (const manifest of manifestFiles) {
     if (manifest.endsWith("Cargo.toml")) {
-      const content = await readFile(manifest, "utf-8");
-      entries.push(...parseCargoToml(content, relative(scanRoot, manifest)));
+      try {
+        const content = await readFile(manifest, "utf-8");
+        entries.push(...parseCargoToml(content, relative(scanRoot, manifest)));
+      } catch (err) {
+        console.error(
+          `[rust-analyzer] Failed to parse ${manifest}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
     }
   }
 

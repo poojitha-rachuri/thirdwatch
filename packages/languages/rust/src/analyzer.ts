@@ -59,7 +59,6 @@ const INFRA_PATTERNS: [RegExp, string][] = [
   [/mongodb::Client::with_uri_str\(/, "mongodb"],
   [/FutureProducer/, "kafka"],
   [/StreamConsumer/, "kafka"],
-  [/bootstrap\.servers/, "kafka"],
   [/Connection::connect\(\s*"amqp:\/\//, "rabbitmq"],
   [/elasticsearch::Elasticsearch::new\(/, "elasticsearch"],
 ];
@@ -73,6 +72,24 @@ const CONN_STRING_PATTERNS: [RegExp, string][] = [
   [/redis:\/\/[^\s"']+/, "redis"],
   [/amqp:\/\/[^\s"']+/, "rabbitmq"],
 ];
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Scan nearby lines for `.set("bootstrap.servers", "<broker>")` to extract
+ * the actual broker address rather than the config key name.
+ */
+function findRustKafkaBootstrapServers(lines: string[], lineIndex: number): string {
+  const start = Math.max(0, lineIndex - 3);
+  const end = Math.min(lines.length - 1, lineIndex + 10);
+  for (let j = start; j <= end; j++) {
+    const m = lines[j]!.match(/"bootstrap\.servers"\s*,\s*"([^"]+)"/);
+    if (m) return m[1]!;
+  }
+  return "unknown";
+}
 
 // ---------------------------------------------------------------------------
 // Main analyzer entry point
@@ -111,13 +128,25 @@ export function analyzeRust(context: AnalyzerContext): DependencyEntry[] {
     }
   }
 
+  let inBlockComment = false;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const lineNum = i + 1;
     const trimmed = line.trim();
 
-    // Skip comments
+    // Skip single-line comments
     if (trimmed.startsWith("//")) continue;
+
+    // Skip block comment content
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      continue;
+    }
 
     // --- HTTP detection ---
     for (const [pattern, kind] of HTTP_PATTERNS) {
@@ -198,8 +227,11 @@ export function analyzeRust(context: AnalyzerContext): DependencyEntry[] {
 
       const envMatch = line.match(/env::var\(\s*["']([^"']+)["']\s*\)/);
       const allQuoted = [...line.matchAll(/["']([^"']+)["']/g)].map((m) => m[1]!);
-      const connValue = allQuoted[0];
-      const connectionRef = envMatch?.[1] ?? redactConnString(connValue ?? "unknown");
+      // For Kafka, find the actual broker address from nearby bootstrap.servers assignment
+      // rather than using allQuoted[0] (which would be the config key name "bootstrap.servers")
+      const connValue =
+        infraType === "kafka" ? findRustKafkaBootstrapServers(lines, i) : (allQuoted[0] ?? "unknown");
+      const connectionRef = envMatch?.[1] ?? redactConnString(connValue);
 
       entries.push({
         kind: "infrastructure",
@@ -238,5 +270,12 @@ export function analyzeRust(context: AnalyzerContext): DependencyEntry[] {
 
 /** Redact credentials from connection string URLs */
 function redactConnString(raw: string): string {
-  return raw.replace(/:\/\/[^@]+@/, "://<redacted>@");
+  // Redact userinfo credentials: ://user:pass@host
+  let result = raw.replaceAll(/:\/\/[^@]+@/g, "://<redacted>@");
+  // Redact query-string credential params: ?password=secret&token=abc
+  result = result.replaceAll(
+    /([?&](?:password|passwd|pwd|secret|token|key|auth)=)[^&\s"']+/gi,
+    "$1<redacted>",
+  );
+  return result;
 }
