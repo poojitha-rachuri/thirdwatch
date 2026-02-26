@@ -13,6 +13,10 @@ patterns:
     - package: "github.com/sashabaranov/go-openai"
       import_patterns:
         - "go-openai"
+  cargo:
+    - package: "async-openai"
+      import_patterns:
+        - "async_openai"
   pypi:
     - package: "openai"
       import_patterns:
