@@ -278,9 +278,9 @@ export function runQuery(
     (object
       (pair
         key: (property_identifier) @key
-        value: (string (string_fragment) @method_value))
-      (#eq? @key "method")))
-  (#eq? @func "fetch"))
+        value: (string (string_fragment) @method_value))))
+  (#eq? @func "fetch")
+  (#eq? @key "method"))
 ```
 
 ```scheme
@@ -516,7 +516,7 @@ mv tree-sitter-python.wasm packages/languages/python/wasm/
 
 ## References
 
-- [web-tree-sitter](https://github.com/nicolo-ribaudo/nicolo-ribaudo.github.io) (WASM bindings)
+- [web-tree-sitter](https://github.com/tree-sitter/tree-sitter/tree/master/lib/binding_web) (WASM bindings)
 - [tree-sitter query syntax](https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries)
 - [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playground)
 - [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python)
