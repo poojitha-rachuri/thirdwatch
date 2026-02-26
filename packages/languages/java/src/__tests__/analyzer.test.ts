@@ -68,11 +68,14 @@ describe("JavaPlugin", () => {
       expect(redis).toBeDefined();
     });
 
-    it("detects Kafka via KafkaProducer", () => {
+    it("detects Kafka via KafkaProducer and captures bootstrap.servers from nearby Properties", () => {
       const kafka = entries.find(
         (e) => e.kind === "infrastructure" && e.type === "kafka",
       );
       expect(kafka).toBeDefined();
+      if (kafka && kafka.kind === "infrastructure") {
+        expect(kafka.connection_ref).toBe("localhost:9092");
+      }
     });
 
     it("deduplicates SDK entries by provider", () => {
@@ -142,18 +145,20 @@ describe("JavaPlugin", () => {
       expect(feignCall).toBeDefined();
     });
 
-    it("detects @PostMapping annotation", () => {
+    it("does not emit @PostMapping path as standalone API (ambiguous Spring/Feign annotation)", () => {
+      // Spring controller @PostMapping would be a false positive (incoming route, not outgoing call).
+      // @FeignClient base URL is already captured via the FEIGN pattern. Path fragments excluded.
       const postMapping = entries.find(
-        (e) => e.kind === "api" && e.method === "POST" && e.url.includes("/v1/charges"),
+        (e) => e.kind === "api" && e.url === "/v1/charges",
       );
-      expect(postMapping).toBeDefined();
+      expect(postMapping).toBeUndefined();
     });
 
-    it("detects @GetMapping annotation", () => {
+    it("does not emit @GetMapping path as standalone API (ambiguous Spring/Feign annotation)", () => {
       const getMapping = entries.find(
-        (e) => e.kind === "api" && e.method === "GET" && e.url.includes("/v1/customers"),
+        (e) => e.kind === "api" && e.url === "/v1/customers",
       );
-      expect(getMapping).toBeDefined();
+      expect(getMapping).toBeUndefined();
     });
   });
 

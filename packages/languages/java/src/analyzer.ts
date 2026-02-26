@@ -19,12 +19,15 @@ const HTTP_PATTERNS: [RegExp, string][] = [
   [/@FeignClient\([^)]*url\s*=\s*"([^"]+)"/, "FEIGN"],
 ];
 
-// Annotation-based HTTP patterns (Retrofit, Spring)
+// Annotation-based HTTP patterns (Retrofit only)
+// NOTE: Spring @GetMapping/@PostMapping are intentionally excluded — they appear on both
+// outgoing Feign client interface methods AND incoming Spring controller methods, making
+// them ambiguous without AST-level context analysis. The @FeignClient(url=...) base URL
+// is already captured via HTTP_PATTERNS (FEIGN kind). Retrofit @GET/@POST are always on
+// outgoing client interfaces so they remain safe to detect.
 const ANNOTATION_HTTP_PATTERNS: [RegExp, string][] = [
-  // @GET("/path"), @POST("/path") — Retrofit
+  // @GET("/path"), @POST("/path") — Retrofit (always outgoing client interface methods)
   [/@(GET|POST|PUT|PATCH|DELETE)\(\s*"([^"]+)"/, "RETROFIT"],
-  // @GetMapping("/path"), @PostMapping("/path") — Spring
-  [/@(Get|Post|Put|Patch|Delete)Mapping\(\s*(?:value\s*=\s*)?"([^"]+)"/, "SPRING_MAPPING"],
 ];
 
 // ---------------------------------------------------------------------------
@@ -95,10 +98,21 @@ export function analyzeJava(context: AnalyzerContext): DependencyEntry[] {
   // Track emitted SDK providers to deduplicate
   const emittedSdkProviders = new Map<string, DependencyEntry>();
 
-  // Detect SDK from imports
+  // Detect SDK from imports — track block comments to avoid matching commented-out imports
+  let inBlockComment = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const trimmed = line.trim();
+
+    if (trimmed.startsWith("//")) continue;
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      continue;
+    }
 
     const importMatch = trimmed.match(/^import\s+(?:static\s+)?([a-zA-Z0-9_.]+)\s*;/);
     if (importMatch) {
@@ -123,13 +137,24 @@ export function analyzeJava(context: AnalyzerContext): DependencyEntry[] {
     }
   }
 
+  inBlockComment = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     const lineNum = i + 1;
     const trimmed = line.trim();
 
-    // Skip comments
-    if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) continue;
+    // Skip single-line comments
+    if (trimmed.startsWith("//")) continue;
+
+    // Track block comments — content inside /* ... */ blocks is not analyzed
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      continue;
+    }
 
     // --- HTTP detection ---
     for (const [pattern, kind] of HTTP_PATTERNS) {
@@ -165,17 +190,12 @@ export function analyzeJava(context: AnalyzerContext): DependencyEntry[] {
       });
     }
 
-    // --- Annotation-based HTTP detection ---
-    for (const [pattern, kind] of ANNOTATION_HTTP_PATTERNS) {
+    // --- Annotation-based HTTP detection (Retrofit only) ---
+    for (const [pattern] of ANNOTATION_HTTP_PATTERNS) {
       const match = line.match(pattern);
       if (!match) continue;
 
-      let method: string;
-      if (kind === "SPRING_MAPPING") {
-        method = match[1]!.toUpperCase();
-      } else {
-        method = match[1]!.toUpperCase();
-      }
+      const method = match[1]!.toUpperCase();
       const url = match[2] ?? "unknown";
 
       entries.push({
@@ -252,8 +272,18 @@ export function analyzeJava(context: AnalyzerContext): DependencyEntry[] {
             confidence: envMatch ? "medium" : "high",
           });
         }
+      } else if (infraType === "kafka") {
+        // Kafka brokers are configured via Properties, not inline — scan nearby lines
+        const bootstrapServers = findKafkaBootstrapServers(lines, i);
+        entries.push({
+          kind: "infrastructure",
+          type: infraType,
+          connection_ref: bootstrapServers,
+          locations: [{ file: rel, line: lineNum, context: trimmed }],
+          confidence: "high",
+        });
       } else {
-        // Redis, MongoDB, Kafka
+        // Redis, MongoDB
         const allQuoted = [...line.matchAll(/["']([^"']+)["']/g)].map((m) => m[1]!);
         const connectionRef = allQuoted[0] ?? "unknown";
 
@@ -313,6 +343,20 @@ export function analyzeJava(context: AnalyzerContext): DependencyEntry[] {
   }
 
   return entries;
+}
+
+/**
+ * Scan back up to 15 lines from the KafkaProducer/KafkaConsumer instantiation
+ * to find a `bootstrap.servers` property assignment and return the broker address.
+ * Returns "unknown" if no bootstrap.servers is found nearby.
+ */
+function findKafkaBootstrapServers(lines: string[], lineIndex: number): string {
+  const searchStart = Math.max(0, lineIndex - 15);
+  for (let j = lineIndex - 1; j >= searchStart; j--) {
+    const m = lines[j]!.match(/"bootstrap\.servers"[^"]*"([^"]+)"/);
+    if (m) return m[1]!;
+  }
+  return "unknown";
 }
 
 /** Redact credentials from connection string URLs */

@@ -18,15 +18,22 @@ export async function parseManifests(
 
     if (!isJavaManifest) continue;
 
-    const content = await readFile(manifest, "utf-8");
-    const rel = relative(scanRoot, manifest);
+    try {
+      const content = await readFile(manifest, "utf-8");
+      const rel = relative(scanRoot, manifest);
 
-    if (manifest.endsWith("pom.xml")) {
-      entries.push(...parsePomXml(content, rel));
-    } else if (manifest.endsWith("build.gradle.kts") || manifest.endsWith("build.gradle")) {
-      entries.push(...parseGradleBuild(content, rel));
-    } else if (manifest.endsWith("libs.versions.toml")) {
-      entries.push(...parseVersionCatalog(content, rel));
+      if (manifest.endsWith("pom.xml")) {
+        entries.push(...parsePomXml(content, rel));
+      } else if (manifest.endsWith("build.gradle.kts") || manifest.endsWith("build.gradle")) {
+        entries.push(...parseGradleBuild(content, rel));
+      } else if (manifest.endsWith("libs.versions.toml")) {
+        entries.push(...parseVersionCatalog(content, rel));
+      }
+    } catch (err) {
+      // Manifest errors are non-fatal — log and continue scanning other files
+      console.error(
+        `[java-analyzer] Failed to parse ${manifest}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -100,7 +107,8 @@ function parseGradleBuild(content: string, manifestFile: string): DependencyEntr
   const entries: DependencyEntry[] = [];
 
   // Skip testImplementation / testCompileOnly / testRuntimeOnly
-  const configRe = /(?:implementation|api|compileOnly|runtimeOnly)/;
+  // Word boundaries ensure we only match standalone config names, not substrings within them
+  const configRe = /\b(?:implementation|api|compileOnly|runtimeOnly)\b/;
 
   // Groovy DSL: implementation 'group:artifact:version'
   const groovyRe = new RegExp(
@@ -124,7 +132,7 @@ function parseGradleBuild(content: string, manifestFile: string): DependencyEntr
 
   // Groovy map notation: implementation group: 'x', name: 'y', version: 'z'
   const mapRe =
-    /(?:implementation|api)\s+group:\s*['"]([^'"]+)['"],\s*name:\s*['"]([^'"]+)['"],\s*version:\s*['"]([^'"]+)['"]/g;
+    /\b(?:implementation|api)\b\s+group:\s*['"]([^'"]+)['"],\s*name:\s*['"]([^'"]+)['"],\s*version:\s*['"]([^'"]+)['"]/g;
   for (const match of content.matchAll(mapRe)) {
     entries.push({
       kind: "package",
