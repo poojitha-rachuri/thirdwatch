@@ -56,4 +56,32 @@ describe("PhpPlugin", () => {
       expect(result.length).toBe(0);
     });
   });
+
+  describe("analyzeManifests — composer.lock", () => {
+    it("parses composer.lock packages", async () => {
+      const manifestFile = resolve(fixturesRoot, "composer.lock");
+      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+      expect(entries.length).toBe(4); // 3 packages + 1 packages-dev
+    });
+
+    it("strips leading v from version strings", async () => {
+      const manifestFile = resolve(fixturesRoot, "composer.lock");
+      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+      const stripe = entries.find((e) => e.kind === "package" && e.name === "stripe/stripe-php");
+      expect(stripe).toBeDefined();
+      if (stripe && stripe.kind === "package") {
+        expect(stripe.current_version).toBe("13.0.0");
+      }
+    });
+
+    it("sets ecosystem to packagist", async () => {
+      const manifestFile = resolve(fixturesRoot, "composer.lock");
+      const entries = await plugin.analyzeManifests([manifestFile], fixturesRoot);
+      for (const entry of entries) {
+        if (entry.kind === "package") {
+          expect(entry.ecosystem).toBe("packagist");
+        }
+      }
+    });
+  });
 });

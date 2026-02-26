@@ -1,0 +1,22 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+
+importers:
+  .:
+    dependencies:
+      stripe:
+        specifier: ^7.0.0
+        version: 7.1.0
+
+packages:
+  stripe@7.1.0:
+    resolution: {integrity: sha512-abc123}
+    engines: {node: '>=12.*'}
+
+  '@aws-sdk/client-s3@3.500.0':
+    resolution: {integrity: sha512-def456}
+
+  axios@1.6.5:
+    resolution: {integrity: sha512-ghi789}

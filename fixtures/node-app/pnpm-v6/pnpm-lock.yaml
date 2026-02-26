@@ -1,0 +1,15 @@
+lockfileVersion: '6.0'
+
+packages:
+  /stripe/7.1.0:
+    resolution: {integrity: sha512-abc123}
+    engines: {node: '>=12.*'}
+    dev: false
+
+  /@aws-sdk/client-s3/3.500.0:
+    resolution: {integrity: sha512-def456}
+    dev: false
+
+  /axios/1.6.5:
+    resolution: {integrity: sha512-ghi789}
+    dev: false

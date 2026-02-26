@@ -12,6 +12,8 @@ serde = { version = "1.0", features = ["derive"] }
 aws-sdk-s3 = "1.10"
 stripe-rust = "0.26"
 async-openai = "0.18"
+my-internal-crate = { path = "../crates/internal" }
+shared-types = { workspace = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

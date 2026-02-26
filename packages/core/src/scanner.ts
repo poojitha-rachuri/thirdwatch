@@ -5,6 +5,7 @@ import fg from "fast-glob";
 import type { TDM } from "@thirdwatch/tdm";
 import type { LanguageAnalyzerPlugin, DependencyEntry } from "./plugin.js";
 import { buildTDM } from "./build-tdm.js";
+import { mergeManifestAndLockfile } from "./lockfile.js";
 import { loadConfig, loadIgnore } from "./config.js";
 import { loadEnvFile, buildEnvMap } from "./resolve.js";
 
@@ -50,18 +51,34 @@ export interface ScanError {
 // ---------------------------------------------------------------------------
 
 const MANIFEST_PATTERNS = [
-  "package.json",
+  // Python
   "requirements.txt",
   "pyproject.toml",
   "Pipfile",
+  "setup.py",
+  "setup.cfg",
+  "environment.yml",
+  // JavaScript/TypeScript
+  "package.json",
+  "package-lock.json",
+  "yarn.lock",
+  "pnpm-lock.yaml",
+  "deno.json",
+  // Go
   "go.mod",
+  // Ruby
   "Gemfile",
+  // Java
   "pom.xml",
   "build.gradle",
   "build.gradle.kts",
   "libs.versions.toml",
+  // Rust
   "Cargo.toml",
+  "Cargo.lock",
+  // PHP
   "composer.json",
+  "composer.lock",
 ];
 
 // ---------------------------------------------------------------------------
@@ -149,9 +166,13 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   });
 
   // Separate manifest files from source files (match by basename to avoid false positives)
-  const manifestFiles = filteredFiles.filter((f) =>
-    MANIFEST_PATTERNS.includes(basename(f)),
-  );
+  const manifestFiles = filteredFiles.filter((f) => {
+    const name = basename(f);
+    return (
+      MANIFEST_PATTERNS.includes(name) ||
+      /^requirements(-[^/]+)?\.txt$/.test(name)
+    );
+  });
 
   // Source files: only files with extensions matching a registered plugin
   const sourceFiles = filteredFiles.filter((f) => pluginMap.has(extname(f)));
@@ -165,6 +186,24 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
       .map((p) => p.analyzeManifests!(manifestFiles, root)),
   );
   const manifestEntries = manifestResults.flat();
+
+  // Merge lockfile resolved versions into manifest constraint entries
+  const LOCKFILE_NAMES = new Set([
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "Cargo.lock",
+    "composer.lock",
+  ]);
+
+  const manifestOnly = manifestEntries.filter(
+    (e) => e.kind !== "package" || !LOCKFILE_NAMES.has(basename(e.manifest_file)),
+  );
+  const lockfileOnly = manifestEntries.filter(
+    (e) => e.kind === "package" && LOCKFILE_NAMES.has(basename(e.manifest_file)),
+  );
+
+  const mergedManifestEntries = mergeManifestAndLockfile(manifestOnly, lockfileOnly);
 
   // Analyze source files with concurrency control
   const errors: ScanError[] = [];
@@ -205,7 +244,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   const fileResults = await pLimit(tasks, concurrency);
   const filesSkipped = fileResults.filter((r) => r.skipped).length;
   const allEntries: DependencyEntry[] = [
-    ...manifestEntries,
+    ...mergedManifestEntries,
     ...fileResults.flatMap((r) => r.entries),
   ];
 

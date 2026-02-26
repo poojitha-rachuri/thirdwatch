@@ -22,3 +22,5 @@ export type { SDKRegistryEntry, SDKPatternEntry } from "./registry.js";
 
 export { scoreConfidence } from "./confidence.js";
 export type { DetectionMethod } from "./confidence.js";
+
+export { mergeManifestAndLockfile } from "./lockfile.js";
