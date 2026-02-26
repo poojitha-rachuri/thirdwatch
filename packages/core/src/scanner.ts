@@ -61,6 +61,7 @@ const MANIFEST_PATTERNS = [
   "build.gradle.kts",
   "libs.versions.toml",
   "Cargo.toml",
+  "composer.json",
 ];
 
 // ---------------------------------------------------------------------------

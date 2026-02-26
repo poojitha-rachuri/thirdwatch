@@ -103,6 +103,9 @@ importers:
       '@thirdwatch/language-javascript':
         specifier: workspace:*
         version: link:../../packages/languages/javascript
+      '@thirdwatch/language-php':
+        specifier: workspace:*
+        version: link:../../packages/languages/php
       '@thirdwatch/language-python':
         specifier: workspace:*
         version: link:../../packages/languages/python
@@ -314,6 +317,25 @@ importers:
       web-tree-sitter:
         specifier: ^0.23.0
         version: 0.23.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.33
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.33)(lightningcss@1.31.1)
+
+  packages/languages/php:
+    dependencies:
+      '@thirdwatch/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@thirdwatch/tdm':
+        specifier: workspace:*
+        version: link:../../tdm
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
