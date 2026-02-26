@@ -1,0 +1,11 @@
+name: payments-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy=1.26
+  - pandas>=2.0
+  - pip:
+    - stripe>=7.0
+    - boto3

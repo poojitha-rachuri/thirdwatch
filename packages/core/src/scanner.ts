@@ -50,18 +50,34 @@ export interface ScanError {
 // ---------------------------------------------------------------------------
 
 const MANIFEST_PATTERNS = [
-  "package.json",
+  // Python
   "requirements.txt",
   "pyproject.toml",
   "Pipfile",
+  "setup.py",
+  "setup.cfg",
+  "environment.yml",
+  // JavaScript/TypeScript
+  "package.json",
+  "package-lock.json",
+  "yarn.lock",
+  "pnpm-lock.yaml",
+  "deno.json",
+  // Go
   "go.mod",
+  // Ruby
   "Gemfile",
+  // Java
   "pom.xml",
   "build.gradle",
   "build.gradle.kts",
   "libs.versions.toml",
+  // Rust
   "Cargo.toml",
+  "Cargo.lock",
+  // PHP
   "composer.json",
+  "composer.lock",
 ];
 
 // ---------------------------------------------------------------------------
@@ -149,9 +165,13 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   });
 
   // Separate manifest files from source files (match by basename to avoid false positives)
-  const manifestFiles = filteredFiles.filter((f) =>
-    MANIFEST_PATTERNS.includes(basename(f)),
-  );
+  const manifestFiles = filteredFiles.filter((f) => {
+    const name = basename(f);
+    return (
+      MANIFEST_PATTERNS.includes(name) ||
+      /^requirements(-[^/]+)?\.txt$/.test(name)
+    );
+  });
 
   // Source files: only files with extensions matching a registered plugin
   const sourceFiles = filteredFiles.filter((f) => pluginMap.has(extname(f)));

@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net main.ts"
+  },
+  "imports": {
+    "stripe": "npm:stripe@^7.0.0",
+    "@std/http": "jsr:@std/http@^0.224.0",
+    "oak": "https://deno.land/x/oak@v12.6.1/mod.ts"
+  }
+}
