@@ -61,7 +61,7 @@ env_var_patterns:             # Detected when env var names appear in code
 Run locally to check your file:
 
 ```bash
-make validate-registry  # coming in Phase 1
-# or
-pnpm thirdwatch validate registries/sdks/<provider-slug>.yml
+make validate-registry
 ```
+
+This validates all YAML files in `registries/sdks/` against the JSON Schema at `schema/registry.schema.json`. CI runs the same check automatically on every PR.

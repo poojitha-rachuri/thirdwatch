@@ -1,4 +1,4 @@
-.PHONY: setup dev build test lint typecheck clean docker-up docker-down
+.PHONY: setup dev build test lint typecheck validate-registry clean docker-up docker-down
 
 ## Bootstrap a fresh clone — run this first
 setup:
@@ -24,6 +24,10 @@ lint:
 ## Type-check all packages
 typecheck:
 	pnpm typecheck
+
+## Validate SDK registry YAML files against schema
+validate-registry:
+	node scripts/validate-registry.mjs
 
 ## Remove all build artifacts and node_modules
 clean:

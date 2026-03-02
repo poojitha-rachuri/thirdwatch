@@ -1,4 +1,18 @@
-// @thirdwatch/core — Convention-based provider detection fallback
+/**
+ * @module registry-conventions
+ *
+ * Convention-based provider detection as the lowest-priority fallback.
+ * Part of the four-tier detection chain (Plan 18):
+ *
+ *   Tier 1: Curated YAML Registry  ← wired (Phase 1)
+ *   Tier 2: Package Metadata Inference  ← registry-inference.ts (Phase 2)
+ *   Tier 3: Convention-Based Detection  ← THIS MODULE (Phase 2)
+ *   Tier 4: Generic dependency capture
+ *
+ * Currently exported but not wired into the scan pipeline.
+ * Will be integrated in Phase 2 when the scanner calls detectByConvention()
+ * as a fallback for packages not matched by Tiers 1 or 2.
+ */
 
 import type { Confidence } from "@thirdwatch/tdm";
 

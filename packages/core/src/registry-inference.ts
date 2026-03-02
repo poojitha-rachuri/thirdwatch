@@ -1,4 +1,18 @@
-// @thirdwatch/core — Package metadata inference for unregistered packages
+/**
+ * @module registry-inference
+ *
+ * Package metadata inference for packages NOT in the curated SDK registry.
+ * Part of the four-tier detection chain (Plan 18):
+ *
+ *   Tier 1: Curated YAML Registry  ← wired (Phase 1)
+ *   Tier 2: Package Metadata Inference  ← THIS MODULE (Phase 2)
+ *   Tier 3: Convention-Based Detection  ← registry-conventions.ts (Phase 2)
+ *   Tier 4: Generic dependency capture
+ *
+ * Currently exported but not wired into the scan pipeline.
+ * Will be integrated in Phase 2 when the scanner calls inferProvider()
+ * for manifest packages that have no match in the curated registry.
+ */
 
 interface PackageMetadata {
   homepage?: string | undefined;
