@@ -1,0 +1,23 @@
+provider: adyen
+display_name: "Adyen"
+homepage: "https://www.adyen.com"
+
+patterns:
+  npm:
+    - package: "@adyen/api-library"
+      import_patterns:
+        - "@adyen/api-library"
+        - "Adyen"
+  pypi:
+    - package: "Adyen"
+      import_patterns:
+        - "import Adyen"
+        - "from Adyen"
+
+known_api_base_urls:
+  - "https://checkout-test.adyen.com"
+  - "https://pal-test.adyen.com"
+
+env_var_patterns:
+  - "ADYEN_API_KEY"
+  - "ADYEN_MERCHANT_ACCOUNT"

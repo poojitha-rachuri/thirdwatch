@@ -1,0 +1,21 @@
+provider: newrelic
+display_name: "New Relic"
+homepage: "https://newrelic.com"
+
+patterns:
+  npm:
+    - package: "newrelic"
+      import_patterns:
+        - "newrelic"
+  pypi:
+    - package: "newrelic"
+      import_patterns:
+        - "import newrelic"
+        - "from newrelic"
+
+known_api_base_urls:
+  - "https://api.newrelic.com"
+
+env_var_patterns:
+  - "NEW_RELIC_LICENSE_KEY"
+  - "NEW_RELIC_APP_NAME"

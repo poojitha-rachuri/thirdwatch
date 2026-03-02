@@ -1,0 +1,22 @@
+provider: postmark
+display_name: "Postmark"
+homepage: "https://postmarkapp.com"
+
+patterns:
+  npm:
+    - package: "postmark"
+      import_patterns:
+        - "postmark"
+        - "ServerClient"
+  pypi:
+    - package: "postmarker"
+      import_patterns:
+        - "import postmarker"
+        - "from postmarker"
+
+known_api_base_urls:
+  - "https://api.postmarkapp.com"
+
+env_var_patterns:
+  - "POSTMARK_API_TOKEN"
+  - "POSTMARK_SERVER_TOKEN"

@@ -1,0 +1,22 @@
+provider: pagerduty
+display_name: "PagerDuty"
+homepage: "https://www.pagerduty.com"
+
+patterns:
+  npm:
+    - package: "@pagerduty/pdjs"
+      import_patterns:
+        - "@pagerduty/pdjs"
+        - "pagerduty"
+  pypi:
+    - package: "pdpyras"
+      import_patterns:
+        - "import pdpyras"
+        - "from pdpyras"
+
+known_api_base_urls:
+  - "https://api.pagerduty.com"
+
+env_var_patterns:
+  - "PAGERDUTY_API_KEY"
+  - "PAGERDUTY_ROUTING_KEY"

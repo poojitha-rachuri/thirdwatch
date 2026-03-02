@@ -1,0 +1,21 @@
+provider: amplitude
+display_name: "Amplitude"
+homepage: "https://amplitude.com"
+
+patterns:
+  npm:
+    - package: "@amplitude/analytics-node"
+      import_patterns:
+        - "@amplitude/analytics-node"
+        - "amplitude"
+  pypi:
+    - package: "amplitude-analytics"
+      import_patterns:
+        - "import amplitude"
+        - "from amplitude"
+
+known_api_base_urls:
+  - "https://api2.amplitude.com"
+
+env_var_patterns:
+  - "AMPLITUDE_API_KEY"

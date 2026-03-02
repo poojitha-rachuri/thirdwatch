@@ -5,6 +5,7 @@ import type {
   TDMInfrastructure,
   TDMWebhook,
 } from "@thirdwatch/tdm";
+import type { RegistryMaps } from "./registry.js";
 
 // ---------------------------------------------------------------------------
 // DependencyEntry — discriminated union of all TDM dependency kinds
@@ -30,6 +31,8 @@ export interface AnalyzerContext {
   scanRoot: string;
   /** Resolved env vars / config values available for URL resolution */
   resolvedEnv: Record<string, string>;
+  /** Prebuilt registry lookup maps for the plugin's ecosystem */
+  registryMaps?: RegistryMaps;
 }
 
 // ---------------------------------------------------------------------------

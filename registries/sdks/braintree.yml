@@ -1,0 +1,23 @@
+provider: braintree
+display_name: "Braintree"
+homepage: "https://www.braintreepayments.com"
+
+patterns:
+  npm:
+    - package: "braintree"
+      import_patterns:
+        - "braintree"
+        - "Braintree"
+  pypi:
+    - package: "braintree"
+      import_patterns:
+        - "import braintree"
+        - "from braintree"
+
+known_api_base_urls:
+  - "https://api.braintreegateway.com"
+
+env_var_patterns:
+  - "BRAINTREE_MERCHANT_ID"
+  - "BRAINTREE_PUBLIC_KEY"
+  - "BRAINTREE_PRIVATE_KEY"

@@ -29,6 +29,11 @@ patterns:
         - "WebClient"
         - "WebhookClient"
 
+constructors:
+  npm:
+    - name: "WebClient"
+    - name: "SlackClient"
+
 known_api_base_urls:
   - "https://slack.com/api"
   - "https://hooks.slack.com/services"

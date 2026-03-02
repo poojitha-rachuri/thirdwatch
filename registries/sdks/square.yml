@@ -1,0 +1,23 @@
+provider: square
+display_name: "Square"
+homepage: "https://developer.squareup.com"
+
+patterns:
+  npm:
+    - package: "square"
+      import_patterns:
+        - "square"
+        - "Square"
+  pypi:
+    - package: "squareup"
+      import_patterns:
+        - "import squareup"
+        - "from squareup"
+        - "from square"
+
+known_api_base_urls:
+  - "https://connect.squareup.com"
+
+env_var_patterns:
+  - "SQUARE_ACCESS_TOKEN"
+  - "SQUARE_APP_ID"

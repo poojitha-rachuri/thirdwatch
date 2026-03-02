@@ -1,0 +1,18 @@
+provider: sanity
+display_name: "Sanity"
+homepage: "https://www.sanity.io"
+
+patterns:
+  npm:
+    - package: "@sanity/client"
+      import_patterns:
+        - "@sanity/client"
+        - "sanity"
+
+known_api_base_urls:
+  - "https://api.sanity.io"
+  - "https://apicdn.sanity.io"
+
+env_var_patterns:
+  - "SANITY_PROJECT_ID"
+  - "SANITY_TOKEN"

@@ -1,0 +1,21 @@
+provider: split
+display_name: "Split"
+homepage: "https://www.split.io"
+
+patterns:
+  npm:
+    - package: "@splitsoftware/splitio"
+      import_patterns:
+        - "@splitsoftware/splitio"
+        - "splitio"
+  pypi:
+    - package: "splitio"
+      import_patterns:
+        - "import splitio"
+        - "from splitio"
+
+known_api_base_urls:
+  - "https://sdk.split.io"
+
+env_var_patterns:
+  - "SPLIT_API_KEY"

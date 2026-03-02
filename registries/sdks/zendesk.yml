@@ -1,0 +1,23 @@
+provider: zendesk
+display_name: "Zendesk"
+homepage: "https://developer.zendesk.com"
+
+patterns:
+  npm:
+    - package: "node-zendesk"
+      import_patterns:
+        - "node-zendesk"
+        - "zendesk"
+  pypi:
+    - package: "zenpy"
+      import_patterns:
+        - "import zenpy"
+        - "from zenpy"
+        - "Zenpy"
+
+known_api_base_urls:
+  - "https://*.zendesk.com"
+
+env_var_patterns:
+  - "ZENDESK_API_TOKEN"
+  - "ZENDESK_SUBDOMAIN"

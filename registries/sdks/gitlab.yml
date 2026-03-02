@@ -1,0 +1,22 @@
+provider: gitlab
+display_name: "GitLab"
+homepage: "https://docs.gitlab.com"
+
+patterns:
+  npm:
+    - package: "@gitbeaker/rest"
+      import_patterns:
+        - "@gitbeaker/rest"
+        - "gitbeaker"
+  pypi:
+    - package: "python-gitlab"
+      import_patterns:
+        - "import gitlab"
+        - "from gitlab"
+
+known_api_base_urls:
+  - "https://gitlab.com/api"
+
+env_var_patterns:
+  - "GITLAB_TOKEN"
+  - "GITLAB_API_TOKEN"

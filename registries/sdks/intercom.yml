@@ -1,0 +1,22 @@
+provider: intercom
+display_name: "Intercom"
+homepage: "https://developers.intercom.com"
+
+patterns:
+  npm:
+    - package: "intercom-client"
+      import_patterns:
+        - "intercom-client"
+        - "Intercom"
+  pypi:
+    - package: "python-intercom"
+      import_patterns:
+        - "import intercom"
+        - "from intercom"
+
+known_api_base_urls:
+  - "https://api.intercom.io"
+
+env_var_patterns:
+  - "INTERCOM_ACCESS_TOKEN"
+  - "INTERCOM_API_KEY"

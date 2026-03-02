@@ -1,0 +1,23 @@
+provider: launchdarkly
+display_name: "LaunchDarkly"
+homepage: "https://launchdarkly.com"
+
+patterns:
+  npm:
+    - package: "@launchdarkly/node-server-sdk"
+      import_patterns:
+        - "@launchdarkly/node-server-sdk"
+        - "launchdarkly"
+  pypi:
+    - package: "launchdarkly-server-sdk"
+      import_patterns:
+        - "import ldclient"
+        - "from ldclient"
+
+known_api_base_urls:
+  - "https://app.launchdarkly.com"
+  - "https://sdk.launchdarkly.com"
+
+env_var_patterns:
+  - "LAUNCHDARKLY_SDK_KEY"
+  - "LD_SDK_KEY"

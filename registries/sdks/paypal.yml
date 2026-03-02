@@ -1,0 +1,23 @@
+provider: paypal
+display_name: "PayPal"
+homepage: "https://developer.paypal.com"
+
+patterns:
+  npm:
+    - package: "@paypal/checkout-server-sdk"
+      import_patterns:
+        - "@paypal/checkout-server-sdk"
+        - "paypal"
+  pypi:
+    - package: "paypalrestsdk"
+      import_patterns:
+        - "import paypalrestsdk"
+        - "from paypalrestsdk"
+
+known_api_base_urls:
+  - "https://api.paypal.com"
+  - "https://api-m.paypal.com"
+
+env_var_patterns:
+  - "PAYPAL_CLIENT_ID"
+  - "PAYPAL_CLIENT_SECRET"

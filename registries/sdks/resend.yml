@@ -19,6 +19,10 @@ patterns:
         - "import resend"
         - "from resend"
 
+constructors:
+  npm:
+    - name: "Resend"
+
 known_api_base_urls:
   - "https://api.resend.com"
 

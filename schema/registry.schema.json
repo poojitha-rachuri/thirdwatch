@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thirdwatch.dev/schema/registry.schema.json",
+  "title": "Thirdwatch SDK Registry Entry",
+  "description": "Validates an SDK registry YAML file (v2 format) for the Thirdwatch dependency scanner.",
+  "type": "object",
+  "required": ["provider", "display_name", "patterns"],
+  "additionalProperties": false,
+  "properties": {
+    "provider": {
+      "type": "string",
+      "description": "Unique lowercase identifier for the provider.",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable provider name."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Provider homepage URL."
+    },
+    "changelog_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the provider's changelog or release notes."
+    },
+    "patterns": {
+      "type": "object",
+      "description": "SDK package patterns grouped by ecosystem.",
+      "additionalProperties": false,
+      "properties": {
+        "npm": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        },
+        "pypi": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        },
+        "go": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        },
+        "maven": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        },
+        "cargo": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        },
+        "packagist": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SDKPatternEntry" }
+        }
+      }
+    },
+    "constructors": {
+      "type": "object",
+      "description": "Constructor patterns grouped by ecosystem.",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/ConstructorPattern" }
+      }
+    },
+    "factories": {
+      "type": "object",
+      "description": "Factory function names grouped by ecosystem.",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "known_api_base_urls": {
+      "type": "array",
+      "description": "Known API base URLs for this provider.",
+      "items": { "type": "string" }
+    },
+    "env_var_patterns": {
+      "type": "array",
+      "description": "Environment variable names associated with this provider.",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "SDKPatternEntry": {
+      "type": "object",
+      "description": "A package and its optional import patterns for a given ecosystem.",
+      "required": ["package"],
+      "additionalProperties": false,
+      "properties": {
+        "package": {
+          "type": "string",
+          "description": "Package name or glob pattern (e.g. \"@aws-sdk/*\")."
+        },
+        "import_patterns": {
+          "type": "array",
+          "description": "Import strings that indicate usage of this package.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "ConstructorPattern": {
+      "type": "object",
+      "description": "A constructor call pattern used to detect SDK instantiation.",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Constructor function or class name."
+        },
+        "services_field": {
+          "type": "string",
+          "description": "Optional field name on the constructor options that lists sub-services."
+        }
+      }
+    }
+  }
+}

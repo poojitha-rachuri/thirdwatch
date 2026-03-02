@@ -1,0 +1,23 @@
+provider: plaid
+display_name: "Plaid"
+homepage: "https://plaid.com"
+
+patterns:
+  npm:
+    - package: "plaid"
+      import_patterns:
+        - "plaid"
+        - "Plaid"
+  pypi:
+    - package: "plaid-python"
+      import_patterns:
+        - "import plaid"
+        - "from plaid"
+
+known_api_base_urls:
+  - "https://production.plaid.com"
+  - "https://sandbox.plaid.com"
+
+env_var_patterns:
+  - "PLAID_CLIENT_ID"
+  - "PLAID_SECRET"

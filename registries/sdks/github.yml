@@ -1,0 +1,27 @@
+provider: github
+display_name: "GitHub"
+homepage: "https://docs.github.com"
+
+patterns:
+  npm:
+    - package: "@octokit/rest"
+      import_patterns:
+        - "@octokit/rest"
+        - "Octokit"
+    - package: "octokit"
+      import_patterns:
+        - "octokit"
+        - "Octokit"
+  pypi:
+    - package: "PyGithub"
+      import_patterns:
+        - "import github"
+        - "from github"
+        - "Github"
+
+known_api_base_urls:
+  - "https://api.github.com"
+
+env_var_patterns:
+  - "GITHUB_TOKEN"
+  - "GITHUB_API_KEY"

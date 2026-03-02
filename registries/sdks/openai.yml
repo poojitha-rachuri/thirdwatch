@@ -25,6 +25,13 @@ patterns:
         - "OpenAI"
         - "AsyncOpenAI"
 
+constructors:
+  npm:
+    - name: "OpenAI"
+  pypi:
+    - name: "OpenAI"
+    - name: "AsyncOpenAI"
+
 known_api_base_urls:
   - "https://api.openai.com"
 

@@ -1,0 +1,21 @@
+provider: replicate
+display_name: "Replicate"
+homepage: "https://replicate.com"
+
+patterns:
+  npm:
+    - package: "replicate"
+      import_patterns:
+        - "replicate"
+        - "Replicate"
+  pypi:
+    - package: "replicate"
+      import_patterns:
+        - "import replicate"
+        - "from replicate"
+
+known_api_base_urls:
+  - "https://api.replicate.com"
+
+env_var_patterns:
+  - "REPLICATE_API_TOKEN"

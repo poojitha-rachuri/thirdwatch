@@ -3,11 +3,13 @@ import { availableParallelism } from "node:os";
 import { basename, extname, relative } from "node:path";
 import fg from "fast-glob";
 import type { TDM } from "@thirdwatch/tdm";
-import type { LanguageAnalyzerPlugin, DependencyEntry } from "./plugin.js";
+import type { LanguageAnalyzerPlugin, DependencyEntry, AnalyzerContext } from "./plugin.js";
 import { buildTDM } from "./build-tdm.js";
 import { mergeManifestAndLockfile } from "./lockfile.js";
 import { loadConfig, loadIgnore } from "./config.js";
 import { loadEnvFile, buildEnvMap } from "./resolve.js";
+import { loadSDKRegistry, buildRegistryMaps } from "./registry.js";
+import type { RegistryMaps } from "./registry.js";
 
 // ---------------------------------------------------------------------------
 // ScanOptions — public configuration for scan()
@@ -28,6 +30,8 @@ export interface ScanOptions {
   useProcessEnv?: boolean;
   /** Max concurrent file analyses (default: os.availableParallelism() or 16) */
   concurrency?: number;
+  /** Path to the registries directory for SDK registry YAML files */
+  registriesDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +115,15 @@ async function pLimit<T>(
 // scan() — main entry point
 // ---------------------------------------------------------------------------
 
+const LANGUAGE_ECOSYSTEMS: Record<string, string> = {
+  python: "pypi",
+  javascript: "npm",
+  go: "go",
+  java: "maven",
+  rust: "cargo",
+  php: "packagist",
+};
+
 export async function scan(options: ScanOptions): Promise<ScanResult> {
   const startMs = Date.now();
   const {
@@ -120,6 +133,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
     concurrency = Math.min(16, Math.max(8, availableParallelism?.() ?? 16)),
     resolveEnv = true,
     useProcessEnv = false,
+    registriesDir,
   } = options;
 
   // Load config
@@ -148,6 +162,16 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
   if (resolveEnv) {
     const dotenvVars = await loadEnvFile(root);
     resolvedEnv = buildEnvMap(dotenvVars, config.env, useProcessEnv);
+  }
+
+  // Load SDK registry and build per-plugin lookup maps
+  const registryMapsByPlugin = new Map<LanguageAnalyzerPlugin, RegistryMaps>();
+  if (registriesDir) {
+    const registry = await loadSDKRegistry(registriesDir);
+    for (const plugin of plugins) {
+      const ecosystem = LANGUAGE_ECOSYSTEMS[plugin.language] ?? plugin.language;
+      registryMapsByPlugin.set(plugin, buildRegistryMaps(registry, ecosystem));
+    }
   }
 
   // Discover all files
@@ -225,12 +249,15 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
 
     try {
       const source = await readFile(filePath, "utf-8");
-      const entries = await plugin.analyze({
+      const ctx: AnalyzerContext = {
         filePath,
         source,
         scanRoot: root,
         resolvedEnv,
-      });
+      };
+      const maps = registryMapsByPlugin.get(plugin);
+      if (maps) ctx.registryMaps = maps;
+      const entries = await plugin.analyze(ctx);
       return { entries, skipped: false };
     } catch (err) {
       errors.push({

@@ -1,0 +1,22 @@
+provider: cohere
+display_name: "Cohere"
+homepage: "https://cohere.com"
+
+patterns:
+  npm:
+    - package: "cohere-ai"
+      import_patterns:
+        - "cohere-ai"
+        - "cohere"
+  pypi:
+    - package: "cohere"
+      import_patterns:
+        - "import cohere"
+        - "from cohere"
+
+known_api_base_urls:
+  - "https://api.cohere.ai"
+  - "https://api.cohere.com"
+
+env_var_patterns:
+  - "COHERE_API_KEY"

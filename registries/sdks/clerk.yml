@@ -1,0 +1,19 @@
+provider: clerk
+display_name: "Clerk"
+homepage: "https://clerk.com"
+
+patterns:
+  npm:
+    - package: "@clerk/clerk-sdk-node"
+      import_patterns:
+        - "@clerk/clerk-sdk-node"
+        - "clerk"
+
+known_api_base_urls:
+  - "https://api.clerk.com"
+  - "https://api.clerk.dev"
+
+env_var_patterns:
+  - "CLERK_SECRET_KEY"
+  - "CLERK_PUBLISHABLE_KEY"
+  - "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"

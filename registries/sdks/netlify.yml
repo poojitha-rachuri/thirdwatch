@@ -1,0 +1,21 @@
+provider: netlify
+display_name: "Netlify"
+homepage: "https://www.netlify.com"
+
+patterns:
+  npm:
+    - package: "netlify"
+      import_patterns:
+        - "netlify"
+  pypi:
+    - package: "netlify-py"
+      import_patterns:
+        - "import netlify"
+        - "from netlify"
+
+known_api_base_urls:
+  - "https://api.netlify.com"
+
+env_var_patterns:
+  - "NETLIFY_AUTH_TOKEN"
+  - "NETLIFY_API_ID"

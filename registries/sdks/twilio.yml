@@ -26,6 +26,14 @@ patterns:
         - "twilio.rest"
         - "Client"
 
+constructors:
+  pypi:
+    - name: "TwilioClient"
+
+factories:
+  npm:
+    - "twilio"
+
 known_api_base_urls:
   - "https://api.twilio.com"
   - "https://messaging.twilio.com"

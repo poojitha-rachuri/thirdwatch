@@ -1,0 +1,23 @@
+provider: mixpanel
+display_name: "Mixpanel"
+homepage: "https://mixpanel.com"
+
+patterns:
+  npm:
+    - package: "mixpanel"
+      import_patterns:
+        - "mixpanel"
+        - "Mixpanel"
+  pypi:
+    - package: "mixpanel"
+      import_patterns:
+        - "import mixpanel"
+        - "from mixpanel"
+
+known_api_base_urls:
+  - "https://api.mixpanel.com"
+  - "https://data.mixpanel.com"
+
+env_var_patterns:
+  - "MIXPANEL_TOKEN"
+  - "MIXPANEL_API_SECRET"
