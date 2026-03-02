@@ -10,13 +10,16 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "validate-registry": "node scripts/validate-registry.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
+    "@types/js-yaml": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "js-yaml": "^4.1.0",
     "prettier": "^3.3.0",
     "turbo": "^2.3.0",
     "typescript": "^5.5.0",
