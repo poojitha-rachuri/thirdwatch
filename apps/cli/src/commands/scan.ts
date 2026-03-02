@@ -1,7 +1,11 @@
 // apps/cli/src/commands/scan.ts — `thirdwatch scan` command handler
 import { Command } from "commander";
-import { resolve, sep } from "node:path";
+import { dirname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { writeFile } from "node:fs/promises";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { scan } from "@thirdwatch/core";
 import { PythonPlugin } from "@thirdwatch/language-python";
 import { JavaScriptPlugin } from "@thirdwatch/language-javascript";
@@ -84,10 +88,14 @@ export const scanCommand = new Command("scan")
     }
 
     try {
+      // Resolve registries directory (relative to CLI package in the monorepo)
+      const registriesDir = resolve(__dirname, "../../../../registries");
+
       const scanOpts: Parameters<typeof scan>[0] = {
         root,
         plugins,
         resolveEnv: opts.resolve !== false,
+        registriesDir,
       };
       if (opts.ignore) scanOpts.ignore = opts.ignore;
       if (opts.config) scanOpts.configFile = opts.config;

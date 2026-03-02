@@ -1,0 +1,26 @@
+provider: mapbox
+display_name: "Mapbox"
+homepage: "https://www.mapbox.com"
+
+patterns:
+  npm:
+    - package: "mapbox-gl"
+      import_patterns:
+        - "mapbox-gl"
+        - "mapboxgl"
+    - package: "@mapbox/mapbox-sdk"
+      import_patterns:
+        - "@mapbox/mapbox-sdk"
+        - "mapbox"
+  pypi:
+    - package: "mapbox"
+      import_patterns:
+        - "import mapbox"
+        - "from mapbox"
+
+known_api_base_urls:
+  - "https://api.mapbox.com"
+
+env_var_patterns:
+  - "MAPBOX_ACCESS_TOKEN"
+  - "MAPBOX_TOKEN"

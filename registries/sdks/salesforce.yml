@@ -1,0 +1,25 @@
+provider: salesforce
+display_name: "Salesforce"
+homepage: "https://developer.salesforce.com"
+
+patterns:
+  npm:
+    - package: "jsforce"
+      import_patterns:
+        - "jsforce"
+        - "JSForce"
+  pypi:
+    - package: "simple-salesforce"
+      import_patterns:
+        - "import simple_salesforce"
+        - "from simple_salesforce"
+        - "Salesforce"
+
+known_api_base_urls:
+  - "https://login.salesforce.com"
+  - "https://*.my.salesforce.com"
+
+env_var_patterns:
+  - "SALESFORCE_USERNAME"
+  - "SALESFORCE_PASSWORD"
+  - "SALESFORCE_SECURITY_TOKEN"

@@ -1,0 +1,24 @@
+provider: segment
+display_name: "Segment"
+homepage: "https://segment.com"
+
+patterns:
+  npm:
+    - package: "analytics-node"
+      import_patterns:
+        - "analytics-node"
+    - package: "@segment/analytics-node"
+      import_patterns:
+        - "@segment/analytics-node"
+  pypi:
+    - package: "analytics-python"
+      import_patterns:
+        - "import analytics"
+        - "from analytics"
+
+known_api_base_urls:
+  - "https://api.segment.io"
+  - "https://cdn.segment.io"
+
+env_var_patterns:
+  - "SEGMENT_WRITE_KEY"

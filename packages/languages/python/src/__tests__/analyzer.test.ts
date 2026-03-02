@@ -1,12 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { loadSDKRegistry, buildRegistryMaps } from "@thirdwatch/core";
+import type { RegistryMaps } from "@thirdwatch/core";
 import { PythonPlugin } from "../index.js";
 
 const fixturesRoot = resolve(__dirname, "../../../../../fixtures/python-app");
+const registriesDir = resolve(__dirname, "../../../../../registries");
 const plugin = new PythonPlugin();
 
+let registryMaps: RegistryMaps;
+
 describe("PythonPlugin", () => {
+  beforeAll(async () => {
+    const registry = await loadSDKRegistry(registriesDir);
+    registryMaps = buildRegistryMaps(registry, "pypi");
+  });
+
   describe("analyzeManifests", () => {
     it("parses requirements.txt", async () => {
       const manifestFile = resolve(fixturesRoot, "requirements.txt");
@@ -44,6 +54,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const sdks = entries.filter((e) => e.kind === "sdk");
@@ -59,6 +70,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const apis = entries.filter((e) => e.kind === "api");
@@ -74,6 +86,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const apis = entries.filter((e) => e.kind === "api");
@@ -90,6 +103,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const sdks = entries.filter((e) => e.kind === "sdk");
@@ -105,6 +119,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const sdks = entries.filter((e) => e.kind === "sdk");
@@ -126,6 +141,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const infra = entries.filter((e) => e.kind === "infrastructure");
@@ -144,6 +160,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const infra = entries.filter((e) => e.kind === "infrastructure");
@@ -162,6 +179,7 @@ describe("PythonPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const infra = entries.filter((e) => e.kind === "infrastructure");

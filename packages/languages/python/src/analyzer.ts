@@ -5,21 +5,6 @@ import type { Confidence } from "@thirdwatch/tdm";
 const HTTP_METHODS = new Set(["get", "post", "put", "patch", "delete", "head", "options"]);
 const HTTP_CLIENTS = new Set(["requests", "httpx", "http_client", "session", "client", "http"]);
 
-// Known SDK modules → provider mapping
-const SDK_PROVIDERS: Record<string, string> = {
-  boto3: "aws",
-  stripe: "stripe",
-  openai: "openai",
-  twilio: "twilio",
-  firebase_admin: "firebase",
-  sendgrid: "sendgrid",
-  sentry_sdk: "sentry",
-  datadog: "datadog",
-  anthropic: "anthropic",
-  pinecone: "pinecone",
-  supabase: "supabase",
-};
-
 // Infrastructure function patterns
 const INFRA_FUNCS: Record<string, string> = {
   "psycopg2.connect": "postgresql",
@@ -43,14 +28,9 @@ const CONN_STRING_PATTERNS: [RegExp, string][] = [
   [/amqp:\/\/[^\s"']+/, "rabbitmq"],
 ];
 
-// SDK constructor names → [provider, sdk_package]
-const SDK_CONSTRUCTORS: Record<string, [string, string]> = {
-  OpenAI: ["openai", "openai"],
-  AsyncOpenAI: ["openai", "openai"],
-  TwilioClient: ["twilio", "twilio"],
-};
-
 export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
+  const sdkProviders = context.registryMaps?.packageProviders ?? new Map<string, string>();
+  const sdkConstructors = context.registryMaps?.constructorProviders ?? new Map<string, [string, string]>();
   const entries: DependencyEntry[] = [];
   const lines = context.source.split("\n");
   const rel = relative(context.scanRoot, context.filePath);
@@ -100,7 +80,7 @@ export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
     }
 
     // Detect SDK usage: boto3.client("s3"), stripe.Charge.create(...), etc.
-    for (const [module, provider] of Object.entries(SDK_PROVIDERS)) {
+    for (const [module, provider] of sdkProviders) {
       // Match: boto3.client("s3"), boto3.resource("dynamodb")
       if (module === "boto3") {
         const boto3Match = line.match(/(?:^|[^\w])boto3\.(client|resource)\(\s*["']([^"']+)["']/);
@@ -148,7 +128,7 @@ export function analyzePython(context: AnalyzerContext): DependencyEntry[] {
     const constructorMatch = line.match(/(?:^|\s|=)\s*(\w+)\s*\(/);
     if (constructorMatch) {
       const ctorName = constructorMatch[1]!;
-      const ctorMapping = SDK_CONSTRUCTORS[ctorName];
+      const ctorMapping = sdkConstructors.get(ctorName);
       if (ctorMapping) {
         const sdkKey = `${ctorMapping[0]}:${lineNum}`;
         if (!sdkDetectedOnLine.has(sdkKey)) {

@@ -1,0 +1,17 @@
+provider: vercel
+display_name: "Vercel"
+homepage: "https://vercel.com"
+
+patterns:
+  npm:
+    - package: "@vercel/sdk"
+      import_patterns:
+        - "@vercel/sdk"
+        - "vercel"
+
+known_api_base_urls:
+  - "https://api.vercel.com"
+
+env_var_patterns:
+  - "VERCEL_TOKEN"
+  - "VERCEL_API_TOKEN"

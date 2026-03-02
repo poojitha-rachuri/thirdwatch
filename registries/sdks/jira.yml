@@ -1,0 +1,23 @@
+provider: jira
+display_name: "Jira"
+homepage: "https://developer.atlassian.com"
+
+patterns:
+  npm:
+    - package: "jira-client"
+      import_patterns:
+        - "jira-client"
+        - "JiraApi"
+  pypi:
+    - package: "jira"
+      import_patterns:
+        - "import jira"
+        - "from jira"
+        - "JIRA"
+
+known_api_base_urls:
+  - "https://*.atlassian.net"
+
+env_var_patterns:
+  - "JIRA_API_TOKEN"
+  - "ATLASSIAN_API_KEY"

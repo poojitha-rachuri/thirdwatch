@@ -61,6 +61,14 @@ patterns:
       import_patterns:
         - "import botocore"
 
+constructors:
+  npm:
+    - name: "S3Client"
+    - name: "SQSClient"
+    - name: "SNSClient"
+    - name: "DynamoDBClient"
+    - name: "LambdaClient"
+
 known_api_base_urls:
   - "https://s3.amazonaws.com"
   - "https://sqs.us-east-1.amazonaws.com"

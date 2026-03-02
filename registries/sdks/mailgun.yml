@@ -1,0 +1,22 @@
+provider: mailgun
+display_name: "Mailgun"
+homepage: "https://www.mailgun.com"
+
+patterns:
+  npm:
+    - package: "mailgun.js"
+      import_patterns:
+        - "mailgun.js"
+        - "Mailgun"
+  pypi:
+    - package: "mailgun"
+      import_patterns:
+        - "import mailgun"
+        - "from mailgun"
+
+known_api_base_urls:
+  - "https://api.mailgun.net"
+
+env_var_patterns:
+  - "MAILGUN_API_KEY"
+  - "MAILGUN_DOMAIN"

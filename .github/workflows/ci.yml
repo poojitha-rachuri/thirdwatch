@@ -38,6 +38,9 @@ jobs:
       - name: Test
         run: pnpm turbo run test
 
+      - name: Validate registry
+        run: node scripts/validate-registry.mjs
+
   changeset-check:
     name: Changeset Required
     runs-on: ubuntu-latest

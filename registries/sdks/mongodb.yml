@@ -1,0 +1,23 @@
+provider: mongodb
+display_name: "MongoDB Atlas"
+homepage: "https://www.mongodb.com"
+
+patterns:
+  npm:
+    - package: "mongodb"
+      import_patterns:
+        - "mongodb"
+        - "MongoClient"
+  pypi:
+    - package: "pymongo"
+      import_patterns:
+        - "import pymongo"
+        - "from pymongo"
+        - "MongoClient"
+
+known_api_base_urls:
+  - "https://cloud.mongodb.com"
+
+env_var_patterns:
+  - "MONGODB_URI"
+  - "MONGO_URL"

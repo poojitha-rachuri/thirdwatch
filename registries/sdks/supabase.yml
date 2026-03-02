@@ -21,6 +21,10 @@ patterns:
         - "from supabase"
         - "create_client"
 
+factories:
+  npm:
+    - "createSupabaseClient"
+
 known_api_base_urls:
   - "https://*.supabase.co"
   - "https://*.supabase.com"

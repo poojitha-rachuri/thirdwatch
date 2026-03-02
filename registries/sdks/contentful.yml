@@ -1,0 +1,23 @@
+provider: contentful
+display_name: "Contentful"
+homepage: "https://www.contentful.com"
+
+patterns:
+  npm:
+    - package: "contentful"
+      import_patterns:
+        - "contentful"
+        - "createClient"
+  pypi:
+    - package: "contentful"
+      import_patterns:
+        - "import contentful"
+        - "from contentful"
+
+known_api_base_urls:
+  - "https://cdn.contentful.com"
+  - "https://api.contentful.com"
+
+env_var_patterns:
+  - "CONTENTFUL_SPACE_ID"
+  - "CONTENTFUL_ACCESS_TOKEN"

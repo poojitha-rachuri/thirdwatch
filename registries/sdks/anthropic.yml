@@ -21,6 +21,10 @@ patterns:
         - "Anthropic"
         - "AsyncAnthropic"
 
+constructors:
+  npm:
+    - name: "Anthropic"
+
 known_api_base_urls:
   - "https://api.anthropic.com"
 

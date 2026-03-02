@@ -1,0 +1,50 @@
+provider: redis
+display_name: "Redis"
+homepage: "https://redis.io"
+changelog_url: "https://github.com/redis/redis/releases"
+
+patterns:
+  npm:
+    - package: "redis"
+      import_patterns:
+        - "redis"
+        - "createClient"
+    - package: "ioredis"
+      import_patterns:
+        - "ioredis"
+        - "Redis"
+  pypi:
+    - package: "redis"
+      import_patterns:
+        - "import redis"
+        - "from redis"
+  go:
+    - package: "github.com/redis/go-redis"
+      import_patterns:
+        - "go-redis"
+  cargo:
+    - package: "redis"
+      import_patterns:
+        - "redis"
+  maven:
+    - package: "redis.clients:jedis"
+      import_patterns:
+        - "redis.clients.jedis"
+        - "Jedis"
+  packagist:
+    - package: "predis/predis"
+      import_patterns:
+        - "Predis"
+
+factories:
+  npm:
+    - "createClient"
+    - "createRedisClient"
+
+known_api_base_urls: []
+
+env_var_patterns:
+  - "REDIS_URL"
+  - "REDIS_HOST"
+  - "REDIS_PORT"
+  - "REDIS_PASSWORD"

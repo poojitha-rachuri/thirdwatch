@@ -1,0 +1,16 @@
+provider: linear
+display_name: "Linear"
+homepage: "https://linear.app"
+
+patterns:
+  npm:
+    - package: "@linear/sdk"
+      import_patterns:
+        - "@linear/sdk"
+        - "LinearClient"
+
+known_api_base_urls:
+  - "https://api.linear.app"
+
+env_var_patterns:
+  - "LINEAR_API_KEY"

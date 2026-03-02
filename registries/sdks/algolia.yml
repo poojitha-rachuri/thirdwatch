@@ -1,0 +1,23 @@
+provider: algolia
+display_name: "Algolia"
+homepage: "https://www.algolia.com"
+
+patterns:
+  npm:
+    - package: "algoliasearch"
+      import_patterns:
+        - "algoliasearch"
+        - "algolia"
+  pypi:
+    - package: "algoliasearch"
+      import_patterns:
+        - "import algoliasearch"
+        - "from algoliasearch"
+
+known_api_base_urls:
+  - "https://*.algolia.net"
+  - "https://*.algolianet.com"
+
+env_var_patterns:
+  - "ALGOLIA_APP_ID"
+  - "ALGOLIA_API_KEY"

@@ -29,6 +29,10 @@ patterns:
         - "import stripe"
         - "from stripe"
 
+constructors:
+  npm:
+    - name: "Stripe"
+
 known_api_base_urls:
   - "https://api.stripe.com"
   - "https://files.stripe.com"

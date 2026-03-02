@@ -1,0 +1,24 @@
+provider: pusher
+display_name: "Pusher"
+homepage: "https://pusher.com"
+
+patterns:
+  npm:
+    - package: "pusher"
+      import_patterns:
+        - "pusher"
+        - "Pusher"
+  pypi:
+    - package: "pusher"
+      import_patterns:
+        - "import pusher"
+        - "from pusher"
+
+known_api_base_urls:
+  - "https://api.pusherapp.com"
+  - "https://api-*.pusher.com"
+
+env_var_patterns:
+  - "PUSHER_APP_ID"
+  - "PUSHER_KEY"
+  - "PUSHER_SECRET"

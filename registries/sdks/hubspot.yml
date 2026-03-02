@@ -1,0 +1,22 @@
+provider: hubspot
+display_name: "HubSpot"
+homepage: "https://developers.hubspot.com"
+
+patterns:
+  npm:
+    - package: "@hubspot/api-client"
+      import_patterns:
+        - "@hubspot/api-client"
+        - "hubspot"
+  pypi:
+    - package: "hubspot-api-client"
+      import_patterns:
+        - "import hubspot"
+        - "from hubspot"
+
+known_api_base_urls:
+  - "https://api.hubapi.com"
+
+env_var_patterns:
+  - "HUBSPOT_API_KEY"
+  - "HUBSPOT_ACCESS_TOKEN"

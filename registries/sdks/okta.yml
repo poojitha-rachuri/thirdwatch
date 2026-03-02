@@ -1,0 +1,23 @@
+provider: okta
+display_name: "Okta"
+homepage: "https://developer.okta.com"
+
+patterns:
+  npm:
+    - package: "@okta/okta-sdk-nodejs"
+      import_patterns:
+        - "@okta/okta-sdk-nodejs"
+        - "okta"
+  pypi:
+    - package: "okta"
+      import_patterns:
+        - "import okta"
+        - "from okta"
+
+known_api_base_urls:
+  - "https://*.okta.com"
+
+env_var_patterns:
+  - "OKTA_DOMAIN"
+  - "OKTA_API_TOKEN"
+  - "OKTA_CLIENT_ID"

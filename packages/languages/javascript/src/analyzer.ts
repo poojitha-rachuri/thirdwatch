@@ -2,28 +2,6 @@ import { relative } from "node:path";
 import type { AnalyzerContext, DependencyEntry } from "@thirdwatch/core";
 import type { Confidence } from "@thirdwatch/tdm";
 
-// SDK constructors: new Stripe(key), new OpenAI({...}), new S3Client({...}), etc.
-const SDK_CONSTRUCTORS: Record<string, [string, string]> = {
-  Stripe: ["stripe", "stripe"],
-  OpenAI: ["openai", "openai"],
-  Anthropic: ["anthropic", "@anthropic-ai/sdk"],
-  S3Client: ["aws", "@aws-sdk/client-s3"],
-  SQSClient: ["aws", "@aws-sdk/client-sqs"],
-  SNSClient: ["aws", "@aws-sdk/client-sns"],
-  DynamoDBClient: ["aws", "@aws-sdk/client-dynamodb"],
-  LambdaClient: ["aws", "@aws-sdk/client-lambda"],
-  Resend: ["resend", "resend"],
-  WebClient: ["slack", "@slack/web-api"],
-  SlackClient: ["slack", "@slack/web-api"],
-};
-
-// Factory functions that create SDK clients
-const SDK_FACTORIES: Record<string, [string, string]> = {
-  createClient: ["redis", "redis"],
-  createRedisClient: ["redis", "redis"],
-  createSupabaseClient: ["supabase", "@supabase/supabase-js"],
-};
-
 // HTTP client objects: axios.get, got.post, etc.
 const HTTP_CLIENTS = new Set(["axios", "got", "ky", "superagent"]);
 const HTTP_METHODS = new Set([
@@ -54,6 +32,8 @@ const VALID_HTTP_METHODS = new Set([
 ]);
 
 export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
+  const sdkConstructors = context.registryMaps?.constructorProviders ?? new Map<string, [string, string]>();
+  const sdkFactories = context.registryMaps?.factoryProviders ?? new Map<string, [string, string]>();
   const entries: DependencyEntry[] = [];
   const lines = context.source.split("\n");
   const rel = relative(context.scanRoot, context.filePath);
@@ -198,7 +178,7 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
     const newMatch = line.match(/new\s+(\w+)\s*\(/);
     if (newMatch) {
       const ctorName = newMatch[1]!;
-      const sdk = SDK_CONSTRUCTORS[ctorName];
+      const sdk = sdkConstructors.get(ctorName);
       if (sdk) {
         entries.push({
           kind: "sdk",
@@ -243,7 +223,7 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
     );
     if (factoryMatch) {
       const funcName = factoryMatch[1]!;
-      const sdk = SDK_FACTORIES[funcName];
+      const sdk = sdkFactories.get(funcName);
       if (sdk) {
         const urlMatch = line.match(
           /url:\s*(?:process\.env\[["']([^"']+)["']\]|["']([^"']+)["'])/,
@@ -279,27 +259,6 @@ export function analyzeJavaScript(context: AnalyzerContext): DependencyEntry[] {
       }
     }
 
-    // Detect twilio factory call: twilio(sid, token)
-    const twilioMatch = line.match(
-      /(?:const|let|var)\s+\w+\s*=\s*twilio\s*\(/,
-    );
-    if (twilioMatch) {
-      entries.push({
-        kind: "sdk",
-        provider: "twilio",
-        sdk_package: "twilio",
-        locations: [
-          {
-            file: rel,
-            line: lineNum,
-            context: line.trim(),
-            usage: "factory:twilio",
-          },
-        ],
-        usage_count: 1,
-        confidence: "high",
-      });
-    }
   }
 
   return entries;

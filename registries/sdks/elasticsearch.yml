@@ -1,0 +1,22 @@
+provider: elasticsearch
+display_name: "Elasticsearch"
+homepage: "https://www.elastic.co"
+
+patterns:
+  npm:
+    - package: "@elastic/elasticsearch"
+      import_patterns:
+        - "@elastic/elasticsearch"
+        - "Client"
+  pypi:
+    - package: "elasticsearch"
+      import_patterns:
+        - "import elasticsearch"
+        - "from elasticsearch"
+        - "Elasticsearch"
+
+known_api_base_urls: []
+
+env_var_patterns:
+  - "ELASTICSEARCH_URL"
+  - "ELASTIC_APM_SERVER_URL"

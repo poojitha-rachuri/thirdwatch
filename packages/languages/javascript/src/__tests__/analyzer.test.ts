@@ -1,12 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { loadSDKRegistry, buildRegistryMaps } from "@thirdwatch/core";
+import type { RegistryMaps } from "@thirdwatch/core";
 import { JavaScriptPlugin } from "../index.js";
 
 const fixturesRoot = resolve(__dirname, "../../../../../fixtures/node-app");
+const registriesDir = resolve(__dirname, "../../../../../registries");
 const plugin = new JavaScriptPlugin();
 
+let registryMaps: RegistryMaps;
+
 describe("JavaScriptPlugin", () => {
+  beforeAll(async () => {
+    const registry = await loadSDKRegistry(registriesDir);
+    registryMaps = buildRegistryMaps(registry, "npm");
+  });
+
   describe("analyzeManifests", () => {
     it("parses package.json dependencies", async () => {
       const manifestFile = resolve(fixturesRoot, "package.json");
@@ -42,6 +52,7 @@ describe("JavaScriptPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const apis = entries.filter((e) => e.kind === "api");
@@ -62,6 +73,7 @@ describe("JavaScriptPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const sdks = entries.filter((e) => e.kind === "sdk");
@@ -90,6 +102,7 @@ describe("JavaScriptPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const infra = entries.filter((e) => e.kind === "infrastructure");
@@ -113,6 +126,7 @@ describe("JavaScriptPlugin", () => {
         source,
         scanRoot: fixturesRoot,
         resolvedEnv: {},
+        registryMaps,
       });
 
       const twilio = entries.find(

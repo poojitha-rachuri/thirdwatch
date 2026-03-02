@@ -17,8 +17,11 @@ export type { ThirdwatchConfig } from "./config.js";
 
 export { resolveUrl, loadEnvFile, buildEnvMap } from "./resolve.js";
 
-export { loadSDKRegistry, buildPackageProviderMap, buildUrlProviderMap } from "./registry.js";
-export type { SDKRegistryEntry, SDKPatternEntry } from "./registry.js";
+export { loadSDKRegistry, buildPackageProviderMap, buildUrlProviderMap, buildConstructorProviderMap, buildFactoryProviderMap, buildRegistryMaps } from "./registry.js";
+export type { SDKRegistryEntry, SDKPatternEntry, ConstructorPattern, RegistryMaps } from "./registry.js";
+
+export { inferProvider } from "./registry-inference.js";
+export { detectByConvention } from "./registry-conventions.js";
 
 export { scoreConfidence } from "./confidence.js";
 export type { DetectionMethod } from "./confidence.js";
