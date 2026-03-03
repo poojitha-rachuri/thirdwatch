@@ -66,6 +66,7 @@ export async function tdmRoutes(
       );
 
       const deps: Array<{
+        id: string;
         identifier: string;
         kind: string;
         ecosystem?: string;
@@ -73,36 +74,36 @@ export async function tdmRoutes(
       }> = [];
 
       for (const pkg of tdm.packages) {
-        const dep = {
+        const depData = {
           identifier: `${pkg.name}@${pkg.ecosystem}`,
           kind: "package",
           ecosystem: pkg.ecosystem,
           currentVersion: pkg.current_version,
         };
-        deps.push(dep);
-        await db.upsertWatchedDependency(orgId, {
-          ...dep,
+        const row = await db.upsertWatchedDependency(orgId, {
+          ...depData,
           provider: pkg.name,
           repositories: [repository],
           totalUsages: pkg.locations.length,
           totalFiles: new Set(pkg.locations.map((l) => l.file)).size,
         });
+        deps.push({ id: row.id, ...depData });
       }
 
       for (const sdk of tdm.sdks) {
-        const dep = { identifier: sdk.sdk_package, kind: "sdk" };
-        deps.push(dep);
-        await db.upsertWatchedDependency(orgId, {
-          ...dep,
+        const depData = { identifier: sdk.sdk_package, kind: "sdk" };
+        const row = await db.upsertWatchedDependency(orgId, {
+          ...depData,
           provider: sdk.provider,
           repositories: [repository],
         });
+        deps.push({ id: row.id, ...depData });
       }
 
       for (const dep of deps) {
         await queue.add(
           "check-dependency",
-          { orgId, dependency: dep },
+          { orgId, dependency: { ...dep, org_id: orgId, repositories: [repository] } },
           {
             jobId: `${orgId}:${dep.identifier}`,
             attempts: 3,

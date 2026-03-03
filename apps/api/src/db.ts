@@ -597,7 +597,8 @@ export const db = {
   async insertNotificationLog(data: {
     orgId: string;
     changeEventId: string;
-    channel: string;
+    channelId: string;
+    channelType: string;
     status: string;
     externalId?: string;
     externalUrl?: string;
@@ -608,8 +609,8 @@ export const db = {
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         data.changeEventId,
-        data.channel,
-        data.channel,
+        data.channelId,
+        data.channelType,
         data.status === "sent",
         data.externalId ?? null,
         data.externalUrl ?? null,

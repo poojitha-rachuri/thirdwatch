@@ -188,10 +188,9 @@ export const workerDb = {
   async insertNotificationLog(data: {
     orgId: string;
     changeEventId: string;
-    channel: string;
+    channelId: string;
+    channelType: string;
     status: string;
-    externalId?: string;
-    externalUrl?: string;
     error?: string;
   }) {
     await pool.query(
@@ -199,8 +198,8 @@ export const workerDb = {
        VALUES ($1, $2, $3, $4, $5)`,
       [
         data.changeEventId,
-        data.channel,
-        data.channel,
+        data.channelId,
+        data.channelType,
         data.status === "sent",
         data.error ?? null,
       ],

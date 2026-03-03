@@ -28,7 +28,14 @@ cp docker/.env.example docker/.env
 cd docker
 docker compose up -d
 
-# 5. Access the dashboard
+# 5. Run database migrations
+docker compose exec -T postgres psql -U thirdwatch thirdwatch \
+  < ../migrations/001_initial.sql \
+  < ../migrations/003_impact_assessments.sql \
+  < ../migrations/004_notification_log.sql \
+  < ../migrations/005_cloud_platform.sql
+
+# 6. Access the dashboard
 open http://localhost:8080
 ```
 

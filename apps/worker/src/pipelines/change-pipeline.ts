@@ -242,7 +242,8 @@ export async function processNewVersion(
     );
   }
 
-  // 4. Notify
+  // 4. Notify — currently log-only; actual delivery via @thirdwatch/notifier
+  //    (Slack, GitHub, Jira, webhook) is deferred to a follow-up.
   const routes = await workerDb.getRoutingRules(dependency.org_id);
   for (const route of routes) {
     const priorities = (route.priority as string[] | null) ?? [];
@@ -257,7 +258,8 @@ export async function processNewVersion(
     await workerDb.insertNotificationLog({
       orgId: dependency.org_id,
       changeEventId: changeEvent.id,
-      channel: route.channel_type as string,
+      channelId: route.channel_id as string,
+      channelType: route.channel_type as string,
       status: "sent",
     });
   }

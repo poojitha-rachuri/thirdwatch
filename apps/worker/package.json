@@ -8,6 +8,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "node --watch dist/index.js",
+    "test": "echo 'no tests yet'",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo"
   },

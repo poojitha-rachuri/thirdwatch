@@ -1,4 +1,4 @@
-.PHONY: setup dev build test lint typecheck validate-registry clean docker-up docker-down
+.PHONY: setup dev build test lint typecheck validate-registry clean docker-up docker-down docker-migrate
 
 ## Bootstrap a fresh clone — run this first
 setup:
@@ -43,6 +43,13 @@ docker-up:
 ## Stop the local Docker stack
 docker-down:
 	docker compose -f docker/compose.yml down
+
+## Run database migrations against the Docker Postgres
+docker-migrate:
+	@for f in migrations/*.sql; do \
+		echo "Applying $$f..."; \
+		docker compose -f docker/compose.yml exec -T postgres psql -U thirdwatch thirdwatch < "$$f"; \
+	done
 
 ## Scan the fixtures directory (smoke test after first build)
 scan-fixtures:
