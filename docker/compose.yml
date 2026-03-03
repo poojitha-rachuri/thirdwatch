@@ -6,8 +6,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: thirdwatch
-      POSTGRES_PASSWORD: thirdwatch
-      POSTGRES_DB: thirdwatch_dev
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: thirdwatch
     ports:
       - "5432:5432"
     volumes:
@@ -17,6 +17,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    secrets:
+      - db_password
 
   redis:
     image: redis:7-alpine
@@ -39,14 +41,23 @@ services:
     ports:
       - "3001:3001"
     environment:
-      DATABASE_URL: postgresql://thirdwatch:thirdwatch@postgres:5432/thirdwatch_dev
+      DATABASE_URL: postgresql://thirdwatch:${DB_PASSWORD:-thirdwatch}@postgres:5432/thirdwatch
       REDIS_URL: redis://redis:6379
-      NODE_ENV: development
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_TEAM_PRICE_ID: ${STRIPE_TEAM_PRICE_ID:-}
+      STRIPE_ENTERPRISE_PRICE_ID: ${STRIPE_ENTERPRISE_PRICE_ID:-}
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    secrets:
+      - db_password
 
   worker:
     build:
@@ -54,16 +65,35 @@ services:
       dockerfile: docker/watcher.Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://thirdwatch:thirdwatch@postgres:5432/thirdwatch_dev
+      DATABASE_URL: postgresql://thirdwatch:${DB_PASSWORD:-thirdwatch}@postgres:5432/thirdwatch
       REDIS_URL: redis://redis:6379
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      CHECK_INTERVAL_HOURS: "6"
-      NODE_ENV: development
+      CHECK_INTERVAL_HOURS: ${CHECK_INTERVAL_HOURS:-6}
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    secrets:
+      - db_password
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:3001
+      NODE_ENV: production
+    depends_on:
+      - api
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
 
 volumes:
   postgres_data:
