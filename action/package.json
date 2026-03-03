@@ -1,6 +1,6 @@
 {
   "name": "@thirdwatch/action",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GitHub Action — scan for external dependencies and gate PRs on new unmonitored dependencies",
   "private": true,
   "main": "dist/index.js",
